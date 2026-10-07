@@ -35,6 +35,8 @@ import { selectOfficeEngine } from '../../../scripts/libreoffice-packages.mjs'
 
 const APP_ROOT = resolve(import.meta.dirname, '..')
 const BUILD_PATHS = resolveDesktopTargetBuildPaths()
+const BUILD_TARGET = resolveDesktopBuildTarget()
+if (BUILD_TARGET.startsWith('linux-')) throw new Error(`desktop runtime: ${BUILD_TARGET} is supported for development only`)
 const DSH_OUTPUT_ROOT = BUILD_PATHS.dsh
 const BUILD_ROOT = mkdtempSync(join(tmpdir(), 'dsh-desktop-runtime-'))
 const STORE_ROOT = join(BUILD_ROOT, 'store')

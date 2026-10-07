@@ -31,6 +31,7 @@ function preparePnpm(): string {
 async function main(): Promise<void> {
   const { values } = parseArgs({ options: { 'defer-primary-runtime-smoke': { type: 'boolean', default: false } } })
   const target = resolveDesktopBuildTarget()
+  if (target.startsWith('linux-')) throw new Error(`desktop runtime: ${target} is supported for development only`)
   const platform = target.startsWith('mac-') ? 'darwin' : 'win32'
   const arch = target.endsWith('arm64') ? 'arm64' : 'x64'
   const require = createRequire(import.meta.url)

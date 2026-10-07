@@ -13,6 +13,12 @@ import { x as extractTar } from 'tar'
 import { parsePrimaryRuntime, workspaceDependencyPaths, type PrimaryRuntimeManifest } from '../../packages/skill/tool-workspace-dependencies/src/index.ts'
 import lock from './lock.json' with { type: 'json' }
 
+const ASSET_DOWNLOAD_IDLE_TIMEOUT_MS = 60_000
+
+function formatDownloadedBytes(bytes: number): string {
+  return `${(bytes / 1_048_576).toFixed(1)} MiB`
+}
+
 /**
  * Download or reuse an archive only when its bytes match the release lock.
  * @param url - Locked archive URL.
@@ -22,15 +28,66 @@ import lock from './lock.json' with { type: 'json' }
  */
 export async function downloadPrimaryRuntimeAsset(url: string, sha256: string, cache: string): Promise<string> {
   const destination = join(cache, sha256)
+  const asset = decodeURIComponent(new URL(url).pathname.split('/').at(-1) ?? 'asset')
   let bytes: Buffer
   try { bytes = readFileSync(destination) } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
-    const response = await fetch(url)
-    if (!response.ok) throw new Error(`primary runtime download: ${String(response.status)} ${url}`)
-    bytes = Buffer.from(await response.arrayBuffer())
+    console.info(`primary runtime download: fetching ${asset}`)
+    const controller = new AbortController()
+    let idleTimer = setTimeout(
+      () => controller.abort(new Error('no download data received for 60 seconds')),
+      ASSET_DOWNLOAD_IDLE_TIMEOUT_MS,
+    )
+    const resetIdleTimer = () => {
+      clearTimeout(idleTimer)
+      idleTimer = setTimeout(() => controller.abort(new Error('no download data received for 60 seconds')), ASSET_DOWNLOAD_IDLE_TIMEOUT_MS)
+    }
+    let response: Response
+    try {
+      response = await fetch(url, { signal: controller.signal })
+    } catch (cause) {
+      clearTimeout(idleTimer)
+      throw new Error(`primary runtime download: request failed for ${asset}: ${cause instanceof Error ? cause.message : String(cause)}`, { cause })
+    }
+    if (!response.ok) {
+      clearTimeout(idleTimer)
+      throw new Error(`primary runtime download: HTTP ${String(response.status)} for ${asset}`)
+    }
+    if (response.body === null) {
+      clearTimeout(idleTimer)
+      throw new Error(`primary runtime download: empty response for ${asset}`)
+    }
+    const contentLength = Number(response.headers.get('content-length'))
+    const expectedBytes = Number.isSafeInteger(contentLength) && contentLength > 0 ? contentLength : undefined
+    const chunks: Buffer[] = []
+    let receivedBytes = 0
+    let lastProgressAt = Date.now()
+    try {
+      const reader = response.body.getReader()
+      while (true) {
+        const next = await reader.read()
+        resetIdleTimer()
+        if (next.done) break
+        const chunk = Buffer.from(next.value)
+        chunks.push(chunk)
+        receivedBytes += chunk.byteLength
+        const now = Date.now()
+        if (now - lastProgressAt >= 3_000) {
+          const total = expectedBytes === undefined ? '' : ` / ${formatDownloadedBytes(expectedBytes)}`
+          console.info(`primary runtime download: ${asset} ${formatDownloadedBytes(receivedBytes)}${total}`)
+          lastProgressAt = now
+        }
+      }
+    } catch (cause) {
+      throw new Error(`primary runtime download: stream failed for ${asset}: ${cause instanceof Error ? cause.message : String(cause)}`, { cause })
+    } finally {
+      clearTimeout(idleTimer)
+    }
+    bytes = Buffer.concat(chunks, receivedBytes)
   }
   if (createHash('sha256').update(bytes).digest('hex') !== sha256) throw new Error(`primary runtime download: checksum mismatch for ${url}`)
   writeFileSync(destination, bytes)
+  console.info(`primary runtime download: ready ${asset} (${formatDownloadedBytes(bytes.byteLength)})`)
   return destination
 }
 
