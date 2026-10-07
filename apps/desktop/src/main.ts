@@ -141,6 +141,35 @@ protocol.registerSchemesAsPrivileged([{
   },
 }])
 
+// WebGPU needs Vulkan on Linux, and Chromium does not turn it on by default.
+//
+// Without this the shell hands a renderer `navigator.gpu` and no adapter at all:
+// measured on this machine with this Electron (44.0.0), a page on a secure
+// `dsh-app`-like scheme answers `hasGpu: true, secure: true` and
+// `requestAdapter() === null`, and `app.getGPUFeatureStatus()` reports
+// `"vulkan": "disabled_off"` beside `"glImplementationParts": "(gl=none,angle=none)"`
+// — no backend for Dawn to use, and not even the CPU fallback. The same page in
+// Chrome works, which is why this reads as a carrier difference rather than a
+// page bug: Chrome enables Vulkan for WebGPU for its own reasons.
+//
+// It is a whole-application switch, not a per-page one — Chromium has no
+// narrower knob — so anything embedded that renders through WebGPU depends on
+// it. `appendSwitch` composes with any `enable-features` set elsewhere; nothing
+// else sets one today.
+//
+// The second switch is for the machines the first one does not cover. Vulkan
+// needs a driver: a box with no usable one gets no hardware adapter, and Chromium
+// offers no software WebGPU adapter unless this flag is set — so without it the
+// failure mode on such a machine is "the feature does not exist" rather than "the
+// feature is slow". With it, `requestAdapter()` falls back to SwiftShader.
+//
+// Measured on this machine (NVIDIA, driver 595.91.07): with both switches the
+// default `requestAdapter()` still returns the hardware adapter, and the
+// fallback becomes available beside it. This widens what CAN be used; it does not
+// choose it.
+app.commandLine.appendSwitch('enable-features', 'Vulkan')
+app.commandLine.appendSwitch('enable-unsafe-webgpu')
+
 interface RuntimeResources {
   readonly nodeBin: string
   readonly node: string
@@ -926,7 +955,7 @@ async function main(): Promise<void> {
   const applicationIconPath = development ? join(app.getAppPath(), 'resources', 'icon-windows.png')
     : join(process.resourcesPath, 'icon.png')
   app.setAboutPanelOptions({
-    applicationName: 'DeepSeek Harness',
+    applicationName: 'IAM Harness',
     applicationVersion: app.getVersion(),
     // The release has no separate build number; omit Electron's bundle version.
     version: '',

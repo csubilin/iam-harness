@@ -1,6 +1,6 @@
 {
-  "name": "DeepSeek Harness",
-  "short_name": "DSH",
+  "name": "IAM Harness",
+  "short_name": "IAM",
   "start_url": "./",
   "scope": "./",
   "display": "fullscreen",

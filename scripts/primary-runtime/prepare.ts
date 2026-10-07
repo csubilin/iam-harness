@@ -35,12 +35,12 @@ export async function downloadPrimaryRuntimeAsset(url: string, sha256: string, c
     console.info(`primary runtime download: fetching ${asset}`)
     const controller = new AbortController()
     let idleTimer = setTimeout(
-      () => controller.abort(new Error('no download data received for 60 seconds')),
+      () => { controller.abort(new Error('no download data received for 60 seconds')) },
       ASSET_DOWNLOAD_IDLE_TIMEOUT_MS,
     )
     const resetIdleTimer = () => {
       clearTimeout(idleTimer)
-      idleTimer = setTimeout(() => controller.abort(new Error('no download data received for 60 seconds')), ASSET_DOWNLOAD_IDLE_TIMEOUT_MS)
+      idleTimer = setTimeout(() => { controller.abort(new Error('no download data received for 60 seconds')) }, ASSET_DOWNLOAD_IDLE_TIMEOUT_MS)
     }
     let response: Response
     try {
