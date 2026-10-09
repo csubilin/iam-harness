@@ -73,6 +73,13 @@ async function launchElectron(): Promise<void> {
     DSH_DESKTOP_OPEN_DEVTOOLS: process.env.DSH_DESKTOP_OPEN_DEVTOOLS ?? '1',
     ELECTRON_ENABLE_LOGGING: process.env.ELECTRON_ENABLE_LOGGING ?? '1',
   }
+  // A shell that has ELECTRON_RUN_AS_NODE set -- which is what this repository's
+  // own `node` shims set for their children -- makes electron.exe run as plain
+  // Node: it rejects --remote-debugging-port and --user-data-dir as unknown Node
+  // options and exits before a window exists. The update scripts remove the
+  // variable for the same reason (test-signed-updates.mjs); this launch is the
+  // one that inherits it from the developer's shell.
+  delete environment.ELECTRON_RUN_AS_NODE
   console.log(`desktop development: DSH_HOME=${home}`)
   console.log(`desktop development: userData=${userData}`)
   console.log(`desktop development: inspectors main=${String(mainPort)}, renderer=${String(rendererPort)}, host=${String(hostPort)}`)
