@@ -1,5 +1,5 @@
-DeepSeek Harness is unavailable
+IAM Harness is unavailable
 The application could not start or stopped unexpectedly.
-Another DSH instance (such as dsh web or the desktop app) is running. They cannot start at the same time. Quit the other running DSH instance, then restart.
+Another IAM Harness instance (such as the web server or the desktop app) is running. They cannot start at the same time. Quit the other one, then restart.
 Exit
 Restart

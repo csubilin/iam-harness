@@ -1,10 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
   <title id="title">IAM — insight in the mine</title>
   <desc id="desc">A bold blue geological frame focuses a clean four-point insight spark above a mine tunnel.</desc>
-  <path fill="#078FCB" fill-rule="evenodd" d="M256 48 454 162v188L256 464 58 350V162L256 48Zm0 65L114 195v122l142 82 142-82V195L256 113Z"/>
-  <!-- A single insight glint, not a network of nodes. -->
-  <path fill="#078FCB" d="m256 133 21 61 62 22-62 21-21 62-21-62-62-21 62-22z"/>
-  <!-- Geological horizon leads the eye to the mine opening. -->
-  <path d="M119 305c54-25 96-26 137-7s83 19 137-6" fill="none" stroke="#078FCB" stroke-width="19" stroke-linecap="square"/>
-  <path d="M214 365v-32a42 42 0 0 1 84 0v32" fill="none" stroke="#078FCB" stroke-width="25" stroke-linecap="square"/>
+  <!-- The tray glyph is this mark on its own; `pnpm run render:tray-icon` rasterizes the group. -->
+  <g id="tray-glyph">
+    <path fill="#078FCB" fill-rule="evenodd" d="M256 48 454 162v188L256 464 58 350V162L256 48Zm0 65L114 195v122l142 82 142-82V195L256 113Z"/>
+    <!-- A single insight glint, not a network of nodes. -->
+    <path fill="#078FCB" d="m256 133 21 61 62 22-62 21-21 62-21-62-62-21 62-22z"/>
+    <!-- Geological horizon leads the eye to the mine opening. -->
+    <path d="M119 305c54-25 96-26 137-7s83 19 137-6" fill="none" stroke="#078FCB" stroke-width="19" stroke-linecap="square"/>
+    <path d="M214 365v-32a42 42 0 0 1 84 0v32" fill="none" stroke="#078FCB" stroke-width="25" stroke-linecap="square"/>
+  </g>
 </svg>

@@ -1,7 +1,7 @@
-DeepSeek Harness
-DeepSeek Harness
+IAM Harness
+IAM Harness
 Add an API key to get started
-Configure official DeepSeek models to start using Harness
+Configure the official DeepSeek models to start using IAM Harness
 Enter API key [password]
 Save and continue [disabled]
 Set up later

@@ -51,6 +51,7 @@ vi.mock('electron', () => ({
   app: {
     isPackaged: false,
     name: 'Harness',
+    commandLine: { appendSwitch: vi.fn() },
     requestSingleInstanceLock: () => true,
     setAsDefaultProtocolClient: vi.fn(),
     whenReady: () => Promise.resolve(),
