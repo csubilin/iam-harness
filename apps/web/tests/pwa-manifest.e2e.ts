@@ -51,7 +51,7 @@ it('ships install metadata with the built web application', async () => {
   expect(index).toContain('<link rel="manifest" href="./manifest.webmanifest" />')
   expect(index).toContain('<link rel="apple-touch-icon" href="./apple-touch-icon.png" />')
   expect(index).toContain('<meta name="mobile-web-app-capable" content="yes" />')
-  expect(index).toContain('<meta name="apple-mobile-web-app-title" content="DSH" />')
+  expect(index).toContain('<meta name="apple-mobile-web-app-title" content="IAM" />')
   // No `theme-color` here: `ThemePresenter` owns the single metadata node and
   // follows the resolved in-application theme, which a static media query
   // cannot. The manifest's `theme_color` covers the surrounding chrome before
@@ -140,18 +140,22 @@ it('preserves fractional coverage along the Apple icon curves', async () => {
         const at = (y * 180 + x) * 4
         return (data[at]! + data[at + 1]! + data[at + 2]!) / 3
       }
+      // The mark's blue averages 118 in brightness against the 255 tile, so edge
+      // coverage lands between them rather than between black and white.
+      const PARTIAL_MIN = 140
+      const PARTIAL_MAX = 235
       let partial = 0
       for (let y = 1; y < 179; y += 1) {
         for (let x = 1; x < 179; x += 1) {
           const value = brightness(x, y)
-          if (value <= 85 || value >= 200) continue
-          // Neighboring ink and background distinguish edge coverage from the
-          // source's gradients and shadows, which remain in both renderings.
+          if (value <= PARTIAL_MIN || value >= PARTIAL_MAX) continue
+          // Neighboring ink and background distinguish edge coverage from
+          // other transitions, which remain in both renderings.
           const neighbors: number[] = []
           for (let dy = -1; dy <= 1; dy += 1) {
             for (let dx = -1; dx <= 1; dx += 1) neighbors.push(brightness(x + dx, y + dy))
           }
-          if (Math.min(...neighbors) < 70 && Math.max(...neighbors) > 220) partial += 1
+          if (Math.min(...neighbors) < 135 && Math.max(...neighbors) > 245) partial += 1
         }
       }
       return partial
