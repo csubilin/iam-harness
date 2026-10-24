@@ -1,15 +1,10 @@
 /**
- * This platform's mark, drawn in the sidebar's brand slot when nothing occupies it.
- *
- * WHY IT IS NOT IN ui-primitives beside the fish.  That package holds the fish
- * because more than one package draws it -- the sidebar's fallback and the
- * official build's brand occupant.  This artwork answers for the sidebar's
- * fallback alone, so it lives with the only thing that renders it.
+ * The product mark, drawn in the sidebar's brand slot and by its official occupant.
  *
  * IT IS THE SAME MARK as the one `IAM/plugin/Brand` registers into
  * `sidebar.brand.mark`, path for path, and the two have to be changed together:
  * a profile with that plugin installed draws the occupant, every other profile
- * draws this.  The paths come from IAM/Assets/mining-platform-icon.svg, which
+ * draws this. The paths come from IAM/Assets/mining-platform-icon.svg, which
  * stays the source of truth.
  *
  * THE COLOUR IS FIXED, not `currentColor` like the fish, and the shape is
@@ -19,12 +14,18 @@
  * `.railMark` are centred flex), so the square fits where the fish did.
  */
 
+/** Props for the product mark. */
+export interface IamBrandMarkProps {
+  /** Edge in px (default 24; the artwork is square). */
+  readonly size?: number | undefined
+}
+
 /**
  * Render the mark.
  * @param props.size - edge in px (default 24; the artwork is square).
  * @returns the mark svg (aria-hidden; the name slot beside it carries the words).
  */
-export function IamBrandMark({ size = 24 }: { readonly size?: number }) {
+export function IamBrandMark({ size = 24 }: IamBrandMarkProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 512 512" fill="none" aria-hidden="true">
       {/* The geological frame: a hexagonal outline, the shape the whole mark sits in. */}
