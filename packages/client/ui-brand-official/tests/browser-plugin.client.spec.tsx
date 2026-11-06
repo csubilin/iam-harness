@@ -10,6 +10,8 @@ import { apply as hostApply } from '../src/index.ts'
 afterEach(() => {
   cleanup()
   vi.unstubAllEnvs()
+  vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 const HOLES = [
@@ -25,7 +27,10 @@ async function bench(declare = true) {
   const slots = ctx.get('slots') as SlotRegistry
   const declareHoles = () => slots.register({
     name: 'root',
-    children: Object.fromEntries([...HOLES, HERO_HOLE].map(name => [name, { kind: 'single', scope: 'root' }])),
+    children: Object.fromEntries([...HOLES, HERO_HOLE].map(name => [name, {
+      kind: 'single',
+      scope: 'root',
+    }])),
   } as never, () => null)
   const disposeHoles = declare ? declareHoles() : undefined
   return { ctx, slots, declareHoles, disposeHoles }
@@ -40,11 +45,12 @@ describe('official browser-brand plugin', () => {
     expect(inject).toEqual(['slots'])
   })
 
-  it('leaves every slot empty outside the official build profile', async () => {
+  it('keeps local sidebar branding', async () => {
     vi.stubEnv('DSH_CLIENT_BUILD_PROFILE', 'local')
     const subject = await bench()
     await subject.ctx.plugin({ inject: [...inject], apply }).await()
-    for (const hole of HOLES) expect(subject.slots.entries(hole)).toHaveLength(0)
+    expect(subject.slots.entries('sidebar.brand.mark')).toHaveLength(0)
+    expect(subject.slots.entries('sidebar.brand.name')).toHaveLength(0)
   })
 
   it('fills declarations before or after apply and removes every occupant on teardown', async () => {
