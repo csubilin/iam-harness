@@ -88,11 +88,9 @@
    its row back. ui-web excludes controls within that row and body portals;
    this outer panel declares no additional region. */
 
-/* Windows keeps caption controls above fullscreen file and terminal panels. */
-:global([data-windows-titlebar]) .panel[data-sidebar-right-panel='fullscreen'] {
-  max-width: calc(100vw - var(--dsh-windows-sidebar-width));
-}
-
+/* Windows fullscreen covers the sidebar like the Web; the frame's caption
+   padding is what keeps the caption row above it. The first pane keeps the
+   content card's rounded top-left corner. */
 :global([data-windows-titlebar]) .panel[data-sidebar-right-panel='fullscreen'] :global([data-dockkit-column='0'][data-dockkit-pane]) {
   border-radius: var(--dsh-windows-content-radius) 0 0 0;
   corner-shape: round;
