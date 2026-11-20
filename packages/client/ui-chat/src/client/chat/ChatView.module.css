@@ -284,36 +284,33 @@
   flex: none;
   width: calc(14px + var(--dsh-content-font-delta, 0px));
   height: calc(14px + var(--dsh-content-font-delta, 0px));
-  /* The fixed footprint contains the animation's layout and paint. */
+  /* The fixed footprint contains the pulse's paint. */
   contain: strict;
   overflow: hidden;
 }
 
-.runningWhaleAnimated {
-  display: none;
-  position: absolute;
-  inset: 0;
+.runningMark {
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-origin: center;
 }
 
-.runningWhaleStill {
-  display: initial;
+.runningMark > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-@supports (mask-mode: alpha) and (mask-image: url('')) {
-  @media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
-    .runningWhaleAnimated {
-      display: block;
-      background: currentColor;
-      mask: url('../assets/running-whale@2x.png') center / 100% 100% no-repeat;
-      mask-mode: alpha;
-      /* Keep animated-mask repaints on an icon-sized composited layer. */
-      will-change: transform;
-    }
-
-    .runningWhaleStill {
-      display: none;
-    }
+@media (prefers-reduced-motion: no-preference) and (forced-colors: none) {
+  .runningMark {
+    animation: runningPulse 1.6s ease-in-out infinite;
   }
+}
+
+@keyframes runningPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.88); }
 }
 
 .openError {

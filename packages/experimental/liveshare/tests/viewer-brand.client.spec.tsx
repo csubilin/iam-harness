@@ -98,7 +98,7 @@ describe('viewer brand row', () => {
     expect(link.getAttribute('title')).toContain('DSH 0.1.5-rc.2+9f2c4d1')
   })
 
-  it('renders the shipped Harness mark at the size the shell asks for', () => {
+  it('renders the IAM mark at the size the shell asks for', () => {
     const { container } = render(<ViewerBrandMark size={24} />)
     const mark = container.querySelector('svg')
     expect(mark).not.toBeNull()
