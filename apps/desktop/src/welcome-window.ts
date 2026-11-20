@@ -4,6 +4,7 @@ import type { SignInAttemptId } from '@deepseek-ai/dsh-deepseek-account/types'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { app, BrowserWindow, ipcMain, type BrowserWindowConstructorOptions, type IpcMainInvokeEvent } from 'electron'
+import { windowIconPath } from './application-icon.ts'
 import type { DesktopLocale } from './locale.ts'
 import { WELCOME_IPC, type WelcomeOperations } from './welcome-api.ts'
 
@@ -14,6 +15,7 @@ import { WELCOME_IPC, type WelcomeOperations } from './welcome-api.ts'
  * @returns sandboxed window options with a locale-only preload.
  */
 export function welcomeWindowOptions(platform: NodeJS.Platform, locale: DesktopLocale): BrowserWindowConstructorOptions {
+  const icon = windowIconPath(platform)
   return {
     width: 600,
     height: 700,
@@ -23,6 +25,7 @@ export function welcomeWindowOptions(platform: NodeJS.Platform, locale: DesktopL
     maximizable: false,
     fullscreenable: false,
     show: false,
+    ...(icon === undefined ? {} : { icon }),
     title: locale.messages.welcomeTitle,
     backgroundColor: platform === 'darwin' || platform === 'win32' ? '#00000000' : '#FFFFFF',
     ...(platform === 'darwin' ? {

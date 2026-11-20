@@ -1,6 +1,7 @@
 /** Isolated, process-lifetime Feishu cookies for explicitly configured test policy requests. */
 import { randomUUID } from 'node:crypto'
 import { BrowserWindow, session } from 'electron'
+import { windowIconPath } from './application-icon.ts'
 import type { DesktopLocale } from './locale.ts'
 
 /** Packaged placeholder document; it is the window's first document and needs no network. */
@@ -70,8 +71,10 @@ export class DesktopPolicyTestAuth {
     if (this.pending !== undefined) { this.focus(); return this.pending }
     const result = Promise.withResolvers<DesktopPolicyLoginResult>()
     const parent = this.parent()
+    const icon = windowIconPath()
     const window = new BrowserWindow({ width: 720, height: 760, ...(parent === undefined ? {} : { parent }),
       title: this.locale.messages.policyLoginTitle, autoHideMenuBar: true,
+      ...(icon === undefined ? {} : { icon }),
       webPreferences: { session: this.browserSession, nodeIntegration: false, contextIsolation: true,
         sandbox: true, webSecurity: true, webviewTag: false, devTools: true, spellcheck: false } })
     this.pending = result.promise
