@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "iax.report-spec/1",
+  "title": "IAX report specification",
+  "description": "Style, outline and format as DATA. Each rule carries the source it came from and whether it is hard (assertable) or soft (a preference). Two hard rules on one path with different values are a conflict the reader must resolve, never a silent last-one-wins.",
+  "type": "object",
+  "required": ["schema", "version", "style", "outline", "format", "legend", "rules"],
+  "properties": {
+    "schema": { "const": "iax.report-spec/1" },
+    "version": {
+      "description": "The spec's own version; every generated report names it.",
+      "type": ["integer", "string"]
+    },
+    "style": {
+      "type": "object",
+      "description": "Fonts, sizes, spacing, margins. Every property here should be readable back from a rendered document."
+    },
+    "outline": {
+      "type": "object",
+      "description": "Section order and what each section must contain."
+    },
+    "format": {
+      "type": "object",
+      "description": "Units, magnitudes, decimal places and rounding. A tenth of a display rule here can change what a reader believes."
+    },
+    "legend": {
+      "type": "object",
+      "properties": {
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["label", "match"],
+            "properties": {
+              "label": { "type": "string", "minLength": 1 },
+              "match": {
+                "type": "string",
+                "minLength": 1,
+                "description": "A case-sensitive wildcard; '*' may appear anywhere. Only '*' is a wildcard."
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "others_label": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["scope", "path", "value", "source", "kind"],
+        "properties": {
+          "scope": { "enum": ["style", "outline", "format", "legend"] },
+          "path": { "type": "string", "minLength": 1 },
+          "value": {},
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Where this rule came from (a sample, a conversation with a date). A rule with no source is one nobody will dare change."
+          },
+          "kind": {
+            "enum": ["hard", "soft"],
+            "description": "hard can become an assertion; soft is a preference."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,47 @@
+{
+  "schema": "iax.report-spec/1",
+  "version": 1,
+  "style": {
+    "comment": "字体、字号、行距、段距。换模板时补一条新属性是正常演进，不是失败。 / Fonts, sizes, line and paragraph spacing. Adding a property for a new template is normal evolution, not a failure."
+  },
+  "outline": {
+    "comment": "章节顺序与每章必须回答的问题。 / Section order and the question each section must answer."
+  },
+  "format": {
+    "comment": "单位、量级、小数位。这一份最容易被忽略，也最容易错了不响。 / Units, magnitudes and decimals. This block is the easiest to overlook, and a mistake here is silent."
+  },
+  "legend": {
+    "groups": [],
+    "others_label": null
+  },
+  "rules": [
+    {
+      "scope": "style",
+      "path": "heading1",
+      "value": { "font_cn": "黑体", "size_pt": 14, "bold": true, "space_before_pt": 12 },
+      "source": "模板默认：一级标题比正文醒目，且与上一节留出间隔 / template default: a level-1 heading is more prominent than body text and separated from the previous section",
+      "kind": "hard"
+    },
+    {
+      "scope": "style",
+      "path": "body",
+      "value": { "font_cn": "宋体", "font_latin": "Times New Roman", "size_pt": 10.5, "line_spacing": 1.25 },
+      "source": "模板默认：正文的通用版式 / template default: the general body layout",
+      "kind": "hard"
+    },
+    {
+      "scope": "format",
+      "path": "volume.display",
+      "value": { "unit": "Mm3", "symbol": "×10⁶ m³", "decimals": 2 },
+      "source": "模板默认：体积按 10⁶ m³ 两位小数；result.json 仍存原始 m³ / template default: volume as 10⁶ m³ with two decimals; result.json still stores raw m³",
+      "kind": "hard"
+    },
+    {
+      "scope": "outline",
+      "path": "sections[].order",
+      "value": ["概述", "数据", "方法", "成果", "验收", "遗留问题", "交付"],
+      "source": "模板默认：先给结论，再给过程 / template default: give the conclusion first, then the process",
+      "kind": "soft"
+    }
+  ]
+}

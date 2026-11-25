@@ -1,0 +1,31 @@
+{
+  "schema": "iax.figure/1",
+  "version": 1,
+  "comment": [
+    "一张图的形状，不是一整本图册：figures.json 是这种对象的列表。 / The shape of one figure, not a whole album: figures.json is a list of these objects.",
+    "图从 result.json 的 artifacts 派生，带 sha256；不写死文件名。 / A figure derives from an artifact in result.json and carries its sha256; no hardcoded filename.",
+    "model-view 由渲染器按 render 的视角重出；manual 允许出现，但必须在实例里登记 by/date。 / model-view is re-rendered from the render block; manual is allowed but must be registered with by/date.",
+    "id / section / caption / source 是待填项；这张模板只给形状，不给具体矿名、路径或阈值。 / id / section / caption / source are to be filled; the template gives only the shape, never a mine name, path or threshold."
+  ],
+  "id": "figure-1",
+  "section": "TODO: 图所在的章节由报告大纲分配 / the report outline assigns the section",
+  "caption": "TODO: 图注由报告大纲分配，不手打编号 / the report outline assigns the caption and number",
+  "kind": "model-view",
+  "source": {
+    "artifact": "TODO: result.json 里 artifact 的 role / the artifact role in result.json",
+    "sha256": "TODO: 产物存在后填入它的 sha256 / fill in the artifact's sha256 once it exists"
+  },
+  "render": {
+    "view": "iso",
+    "fit_elements": [],
+    "camera": null,
+    "overlay": ["axis", "scale", "legend"],
+    "width": 1600,
+    "height": 900,
+    "dpi": 300
+  },
+  "legend": {},
+  "verify": {
+    "not_blank": true
+  }
+}

@@ -29,6 +29,7 @@ export const HIDDEN_BUNDLES: ReadonlySet<string> = new Set([
   '@deepseek-ai/dsh-sdk-app',
   '@deepseek-ai/dsh-acp-app',
   '@deepseek-ai/dsh-sdk-minimal',
+  '@deepseek-ai/iam-mining-workspace',
   '@deepseek-ai/dsh-experimental-tool-worktree',
   '@deepseek-ai/dsh-cua-mcp',
 ])

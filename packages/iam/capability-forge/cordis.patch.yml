@@ -1,0 +1,24 @@
+# The bundle layer this package contributes to a profile.
+#
+# A row names the package (not a relative file) so that Node resolution finds
+# the installed copy; the entry resolves the package's `exports["."]`.
+#
+# No `dsh.client` anywhere in this package, and so no browser half to mount: the
+# five tools below are host-side, which is what lets this bundle load in the
+# headless, sdk and acp profiles that mount no page.
+#
+# The forge does NOT run capabilities. It generates, validates, freezes and
+# audits them; execution stays with the AlgorithmBridge's iam_workflow_run. The
+# `config:` row is optional:
+#
+#   config:
+#     python: /usr/bin/python3            # else $IAX_PYTHON, else python/python3
+#     timeoutMs: 120000                   # per forge call
+#     workspace: D:/dev/MiningFlatform/workspace
+#                                         # last resort; the tools ask the
+#                                         # Harness's workingDirectory service
+#                                         # first, and a call-time workspace
+#                                         # beats both
+- insert:
+    - id: iam-capability-forge
+      name: '@deepseek-ai/iam-capability-forge'

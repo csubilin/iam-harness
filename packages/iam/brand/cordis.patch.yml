@@ -1,0 +1,15 @@
+# The bundle layer this package contributes to a profile.
+#
+# A row names the package (not a relative file) so that Node resolution finds
+# the installed copy; the entry resolves the package's `exports["."]`.
+#
+# A SEPARATE PACKAGE FROM THE VIEW PLUGIN, and that is not tidiness.  The
+# sidebar's brand slots are `kind: 'single'`: two plugins registering into them
+# is not a merge, it is the second registration failing.  Folding the mark into
+# the view package would also tie it to the views being installed at all, so a
+# workspace with no page would fall back to the harness's own mark while one
+# with a page wore this one.  One package, one owner, and a profile that wants
+# the platform's own mark installs it once.
+- insert:
+    - id: iam-brand
+      name: '@deepseek-ai/iam-brand'

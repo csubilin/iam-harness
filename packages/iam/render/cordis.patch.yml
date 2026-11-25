@@ -1,0 +1,21 @@
+# The bundle layer this package contributes to a profile.
+#
+# A row names the package (not a relative file) so that Node resolution finds the
+# installed copy; the entry resolves the package's `exports["."]`.
+#
+# No `dsh.client` anywhere in this package, and so no browser half to mount: the
+# tool below is host-side, which is what lets this bundle load in the headless and
+# sdk profiles that mount no page.
+#
+# `config:` is optional. Every field has a default and the environment variable
+# IAM_NATIVE_HEADLESS_TOOL beats the first of them, so an empty row is the normal
+# case:
+#
+#   config:
+#     toolsDir: /path/to/build/exe/win-native
+#     width: 1600
+#     height: 900
+#     timeoutSeconds: 300
+- insert:
+    - id: iam-render
+      name: '@deepseek-ai/iam-render'

@@ -751,6 +751,9 @@ importers:
       '@deepseek-ai/dsh-webhook-github':
         specifier: workspace:*
         version: link:../../packages/experimental/webhook-github
+      '@deepseek-ai/iam-mining-workspace':
+        specifier: workspace:*
+        version: link:../../packages/bundle/iam
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
@@ -2955,6 +2958,27 @@ importers:
       '@deepseek-ai/dsh-user-approval':
         specifier: workspace:*
         version: link:../../interaction/user-approval
+
+  packages/bundle/iam:
+    dependencies:
+      '@deepseek-ai/iam-algorithm-bridge':
+        specifier: workspace:*
+        version: link:../../iam/algorithm-bridge
+      '@deepseek-ai/iam-brand':
+        specifier: workspace:*
+        version: link:../../iam/brand
+      '@deepseek-ai/iam-import':
+        specifier: workspace:*
+        version: link:../../iam/import
+      '@deepseek-ai/iam-mining-repository':
+        specifier: workspace:*
+        version: link:../../iam/mining-repository
+      '@deepseek-ai/iam-render':
+        specifier: workspace:*
+        version: link:../../iam/render
+      '@deepseek-ai/iam-views':
+        specifier: workspace:*
+        version: link:../../iam/views
 
   packages/bundle/sdk-app:
     dependencies:
@@ -14624,6 +14648,20 @@ importers:
       selfsigned:
         specifier: ^4.0.1
         version: 4.0.1
+
+  packages/iam/algorithm-bridge: {}
+
+  packages/iam/brand: {}
+
+  packages/iam/capability-forge: {}
+
+  packages/iam/import: {}
+
+  packages/iam/mining-repository: {}
+
+  packages/iam/render: {}
+
+  packages/iam/views: {}
 
   packages/identity/anonymous-user-id:
     devDependencies:

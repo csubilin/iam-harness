@@ -108,6 +108,12 @@ export abstract class ReleaseFamily {
   abstract readonly tagPrefix: string
 
   /**
+   * Whether private manifests join this family. Only a packing-only family that
+   * never publishes turns this on; publish workflows use the default.
+   */
+  protected readonly includePrivate: boolean = false
+
+  /**
    * Assert that built artifacts match this release family's required profile.
    * Families without environment-selected artifacts accept every build tree.
    * @param _root - repository root containing generated artifacts.
@@ -128,7 +134,7 @@ export abstract class ReleaseFamily {
     for (const manifestPath of manifestPaths) {
       const normalized = manifestPath.replaceAll('\\', '/')
       const manifest = readManifest(resolve(root, manifestPath))
-      if (manifest.private === true) continue
+      if (manifest.private === true && !this.includePrivate) continue
       const name = requireString(manifest, 'name', normalized)
       const version = requireString(manifest, 'version', normalized)
       if (name === WORKSPACE_ROOT_PACKAGE) throw new Error(`${normalized} selected the workspace root`)
@@ -474,9 +480,36 @@ class VendorFamily extends ReleaseFamily {
   readonly installedEntry = undefined
 }
 
+/** IAM mining plugins: private packages packed into the Desktop install, never published. */
+class IamFamily extends ReleaseFamily {
+  readonly id = 'iam'
+  readonly patterns = [
+    'packages/iam/*/package.json',
+    'packages/bundle/iam/package.json',
+  ] as const
+  readonly tagPrefix = 'iam-v'
+  protected override readonly includePrivate = true
+
+  /** These packages never publish, so the tag only labels a local pack. */
+  tagPrefixFor(): string {
+    return this.tagPrefix
+  }
+
+  /** Independent versions: no tag or registry release names these packages. */
+  verifyVersions(_members: readonly ReleaseMember[]): void {}
+
+  /** Internal payload; `files` decides its shape, so only an empty tarball is a defect. */
+  validatePayload(member: ReleaseMember, files: readonly string[]): void {
+    if (files.length === 0) throw new Error(`${member.name} packed an empty tarball`)
+  }
+
+  /** No installed-entry probe: the bundles load inside a Harness profile. */
+  readonly installedEntry = undefined
+}
+
 /** Every release family this module owns, in workflow order. */
 function releaseFamilies(): readonly ReleaseFamily[] {
-  return [new DshFamily(), new VendorFamily()]
+  return [new DshFamily(), new VendorFamily(), new IamFamily()]
 }
 
 /**

@@ -1,0 +1,71 @@
+# The whole platform in one install.
+#
+# This bundle installs its four local package dependencies and inserts their rows:
+#
+#   pnpm dsh plugin --profile web add <repo>/IAM/plugin/profile/mining-workspace
+#
+# The file: dependencies make this a checkout-local distribution. Publishable
+# bundles need versioned package dependencies instead of file: paths.
+#
+# The two view packages are listed here because a viewer belongs in a workspace
+# that has drawings and mines to look at. A headless run wants the tools without
+# a page, and takes Import directly; see manifest.json, where each package
+# records the profiles it belongs in.
+
+# The preview pane reads a binary document whole -- the wasm view needs the bytes
+# in one piece -- and the harness's complete-file cap defaults to 32 MiB, which is
+# below a real mine. Raise it to the schema's maximum so a .iamh opens; the
+# per-window caps (maxBytes, maxLines) are unchanged, and memory is still the
+# real limit. This is a deployment setting, not a service change: the harness
+# keeps its default for every profile that does not ask for this.
+- id: workspace-files
+  config:
+    maxFileBytes: 9007199254740990
+
+- insert:
+    - id: iam-import
+      name: '@deepseek-ai/iam-import'
+
+    # Figures for a report. The platform's own renderer as a verb: a workspace
+    # that can import and inspect a mine is also the one that has to put a
+    # picture of it into a review. It carries no page, so the headless profiles
+    # take the package directly -- see manifest.json for the rows each profile
+    # gets.
+    - id: iam-render
+      name: '@deepseek-ai/iam-render'
+
+    - id: iam-views
+      name: '@deepseek-ai/iam-views'
+
+    - id: iam-brand
+      name: '@deepseek-ai/iam-brand'
+
+    # The algorithm library's retrieval and execution surface. Listed here for
+    # the reason the tools-only row above is not enough on its own: a workspace
+    # that has a mine open is exactly where a model needs to ask what the
+    # platform can do with it and then run something. It carries no page, so a
+    # profile that wants the tools without the views takes this one directly.
+    #
+    # The workflow example under Workflows/Examples/ is NOT a row, and neither
+    # are the user's workflows in <workspace>/.iax/workflows. A workflow is
+    # Python and a manifest, run through this bridge's iam_workflow_run; nothing
+    # of it loads into a profile, so there is nothing for a row to name.
+    - id: iam-algorithm-bridge
+      name: '@deepseek-ai/iam-algorithm-bridge'
+
+    # The forge beside the bridge that runs what it freezes: a workspace that
+    # freezes capabilities needs the workshop that generates, validates and
+    # audits them, and the two are deliberately not the same package -- the forge
+    # never executes a capability, so there is one runner and one fact source.
+    - id: iam-capability-forge
+      name: '@deepseek-ai/iam-capability-forge'
+
+    # Making something VISIBLE. A mine can be 158 MB as a payload and the preview
+    # copies a document whole before the engine sees it, so "显示矿体" is answered
+    # by opening the project and telling the view what to draw -- the panel draws
+    # the document, and the selection is a view state rather than a second file.
+    # This row is the tool that resolves the selection and hands it over; the card
+    # that opens it comes from Views, which reads the tool result's presentation
+    # metadata. On the desktop a columnar .iamh goes to the native editor instead.
+    - id: iam-mining-repository
+      name: '@deepseek-ai/iam-mining-repository'

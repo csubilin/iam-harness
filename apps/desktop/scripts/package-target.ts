@@ -492,6 +492,11 @@ export async function packageTarget(
         : ['run', 'release:pack', '--family', 'dsh']),
       '--out', buildPaths.packedDsh, ...packArguments,
     ], buildEnv, REPOSITORY_ROOT)
+    if (!invocation.unsigned) {
+      await executePreparation([
+        'run', 'release:pack', '--family', 'iam', '--out', buildPaths.packedDsh, ...packArguments,
+      ], buildEnv, REPOSITORY_ROOT)
+    }
     await executePreparation([
       '--dir',
       'apps/desktop-host',

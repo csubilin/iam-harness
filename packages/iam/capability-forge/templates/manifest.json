@@ -1,0 +1,140 @@
+{
+  "version": "0.1.0",
+  "title": "TODO: {{title}}",
+  "answers": "TODO: {{answers}}",
+  "inputs": {
+    "required": [
+      {
+        "name": "input",
+        "kind": "path",
+        "means": "TODO: 这个能力要读的文件。",
+        "refused_when": "TODO: 打不开，或内容不是这个名字所说的那种数据。",
+        "why_not_inferred": "工作区里可能不止一份同名数据；选哪一份是使用者的决定，不是平台的。"
+      },
+      {
+        "name": "mode",
+        "kind": "enum",
+        "choices": [
+          "default",
+          "strict"
+        ],
+        "means": "TODO: 处理口径。两个候选分别对应什么，由实现写清。",
+        "refused_when": "TODO: 不在 choices 里就拒绝，不退回 default。",
+        "why_not_inferred": "default 与 strict 是使用者的处理口径；平台不替人选择。"
+      }
+    ],
+    "optional": [
+      {
+        "name": "steps",
+        "kind": "list",
+        "choices": [
+          "read",
+          "compute",
+          "summarize"
+        ],
+        "means": "只跑这些步骤。省略则按 manifest.steps 的顺序全跑；空选择被拒绝。 / Run only these steps; omit to run all in manifest.steps order; an empty selection is refused.",
+        "note": "步骤是数据：id 与先后顺序来自 manifest.steps。选中一步时，它 require 的早期步骤必须同时选中，或由 resume 提供其产物。 / Steps are data: ids and order come from manifest.steps. A selected step's earlier requirements must be selected too or supplied by resume."
+      },
+      {
+        "name": "resume",
+        "kind": "path",
+        "means": "上一次的 result.json。被跳过的步骤若已把自己的产物写进这份结果，就不再要求重跑它。 / The previous result.json. A skipped step whose products are already in it need not be re-run.",
+        "note": "这是「只跑后面某一步」的凭据：没有 resume，又不选先决步骤，工作流会拒绝并点名缺哪一步。 / This is the proof for running a later step alone: without resume, and with prerequisites unselected, the workflow refuses and names the missing step."
+      }
+    ]
+  },
+  "steps": [
+    {
+      "id": "read",
+      "label": "读取输入 / Read input",
+      "n": 1,
+      "does": "TODO: 读输入，并把数据自带的事实（大小、哈希、可读出的计数）写进 facts。 / Read the input and record the facts it carries (size, hash, readable counts) in facts.",
+      "refuses": "输入打不开或格式不符时拒绝，不猜一份替代数据。 / Refuse when the input cannot be opened or the format does not match; never guess a substitute.",
+      "requires": [],
+      "produces": [
+        "facts"
+      ]
+    },
+    {
+      "id": "compute",
+      "label": "计算 / Compute",
+      "n": 2,
+      "does": "TODO: 计算。所有数值以原始值与单位写进 result.json，不写格式化后的字符串。 / Compute. Write every value as a raw value with its unit into result.json, never as a formatted string.",
+      "refuses": "算法拒绝时把拒绝原文写进 verdicts/warnings，不换参数重试。 / When the algorithm refuses, write its own wording into verdicts/warnings; do not retry with changed parameters.",
+      "requires": [
+        "read"
+      ],
+      "produces": [
+        "solids",
+        "metrics"
+      ]
+    },
+    {
+      "id": "summarize",
+      "label": "汇总 / Summarize",
+      "n": 3,
+      "does": "TODO: 汇总 verdicts/warnings；只跑这一步时，compute 的产物必须由 resume 提供。 / Summarize verdicts/warnings; when running this step alone, compute's products must come from resume.",
+      "refuses": "先决输出缺失时拒绝并点名缺哪一步，不静默补跑。 / Refuse and name the missing prerequisite; never silently re-run it.",
+      "requires": [
+        "compute"
+      ],
+      "produces": [
+        "verdicts"
+      ]
+    }
+  ],
+  "acceptance": [
+    "TODO: 结果里的每个数值都能在 result.json 找到出处。 / Every number in the report can be traced to result.json.",
+    "TODO: 每个产物的 bytes 与 sha256 都记录在 result.json.artifacts 里。 / Every artifact's bytes and sha256 are recorded in result.json.artifacts.",
+    "TODO: 推不出来的参数由人给；缺参数时拒绝并说明，不给默认值。 / Non-inferable parameters come from a person; a missing one is refused, never defaulted.",
+    "TODO: 只跑选中的步骤；跳过的步骤不会被当成已执行，先决输出缺失时拒绝而不是静默补跑。 / Only selected steps run; a skipped step is never treated as executed, and a missing prerequisite refuses instead of silently re-running."
+  ],
+  "acceptance_checks": [
+    {
+      "id": "numbers_from_result",
+      "assert": "set(report_numeric_literals) <= set(result_numeric_paths)"
+    },
+    {
+      "id": "artifacts_recorded",
+      "assert": "all(a.sha256 and a.bytes for a in result.artifacts)"
+    },
+    {
+      "id": "required_inputs_recorded",
+      "assert": "all(name in result.inputs or name in result.parameters for name in [item['name'] for item in manifest.inputs.required])"
+    },
+    {
+      "id": "steps_recorded",
+      "assert": "result.run.steps.requested == sorted(set(result.run.steps.executed) | set(result.run.steps.skipped))"
+    }
+  ],
+  "produces": {
+    "schema": "iax.capability.result/1",
+    "artifacts": [
+      "result.json"
+    ]
+  },
+  "deliverable": {
+    "primary": "result.json",
+    "record": "result.json 的 run.steps、inputs、parameters、versions、artifacts 几节 / the run.steps, inputs, parameters, versions and artifacts sections of result.json"
+  },
+  "known_limits": [
+    "模板只固定形状；真实算法、单位与拒绝条件由实现写清。 / The template fixes the shape only; the implementation states the real algorithm, units and refusal conditions.",
+    "步骤选择是工作流层的契约：没有声明 steps 的能力仍然整条执行。 / Step selection is a workflow-layer contract: a capability with no steps declaration still runs in full."
+  ],
+  "comment": [
+    "字段名是英文契约键；给人读的内容可以用中文或英文。 / Field names are English contract keys; human-facing values may be Chinese or English.",
+    "TODO: 是给人和机器看的占位标记。capability_validate 会拒绝它，capability_freeze 不会调用 bridge—— / TODO: is a placeholder marker for humans and machines; validate refuses it and freeze does not call the bridge.",
+    "填完再冻结；冻结一个占位符等于把「还不知道」写成契约。",
+    "scaffold 写 status=draft；iam_workflow_run 拒绝 draft，capability_freeze 在锁写好后改成 active。",
+    "每一节都有一个读者，所以每一节都有存在的理由：",
+    "title/answers 给人从列表里选；inputs 给 iam_workflow_run 决定跑前问什么；",
+    "steps 的 id 给调用方点名要跑哪一步，requires 只允许指回更早的步骤；",
+    "steps/resume 两个可选输入是部分执行的接缝：选中一步时，先决步骤要么同时选中，要么由 resume 的产物顶上；",
+    "run.steps 记录 requested / executed / skipped，部分执行不会被读成整条完成；",
+    "acceptance 是给人读的契约，acceptance_checks 是给机器跑的断言，两者必须等长且 id 顺序一致——",
+    "一条没有断言对应的验收规则，永远不会失败。模板只固定形状，不写具体阈值。",
+    "不认识的字段在冻结时会被拒绝：拼错的 acceptance_checks 不会成为一个被忽略的字段。"
+  ],
+  "name": "{{capability}}",
+  "status": "draft"
+}

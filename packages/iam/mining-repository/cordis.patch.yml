@@ -1,0 +1,51 @@
+# The bundle layer this package contributes to a profile.
+#
+# A row names the package (not a relative file) so that Node resolution finds
+# the installed copy; the entry resolves the package's `exports["."]`.
+#
+# No `dsh.client` anywhere in this package, and so no browser half to mount: the
+# tool below is host-side. The CARD a user sees for its result is Views' -- this
+# package contributes the data through the tool result's presentation metadata,
+# which is what survives a reload and re-renders identically from the log.
+#
+# `config:` is optional for this tool, and empty is the normal case. It reads a
+# project and hands a selection to whichever carrier can show it; it runs no code
+# the model supplied, so there is no runner to configure here -- unlike
+# AlgorithmBridge, whose `iam_program_run` refuses to execute anything until one
+# is named.
+#
+#   config:
+#     python: /usr/bin/python3            # else $IAX_PYTHON, else python/python3
+#     timeoutSeconds: 120                 # per call; else 120
+#     pythonPath: [/extra/site-packages]  # prepended to PYTHONPATH
+#
+#     platformRoot: /opt/iax              # else $IAX_PLATFORM_ROOT, else derived
+#                                         # from where this package sits. The root
+#                                         # holding IAM/ and Mining/, from which
+#                                         # build/<leaf>/<platform>/ is searched
+#                                         # for libIamC, which is what reads
+#                                         # the project.
+#
+#     workspace: D:/dev/MiningFlatform/workspace
+#                                         # LAST RESORT and usually unnecessary:
+#                                         # the tool asks the Harness's
+#                                         # `workingDirectory` service for the
+#                                         # calling session's own directory, which
+#                                         # is the only answer that can be right
+#                                         # when a host has several workspaces open.
+#
+#     nativeBinDir: /opt/iax/bin/win-native
+#     fontsDir: /opt/iax/Fonts
+#                                         # Where IamNativeMiningView and the SHX
+#                                         # fonts are. Needed ONLY for a `.iamh`,
+#                                         # which the browser view cannot draw: on
+#                                         # the desktop carrier the tool starts the
+#                                         # native editor and hands it the same
+#                                         # selection. Else $IAM_NATIVE_DIR,
+#                                         # $IAM_FONTS_DIR and $ACAD -- the same
+#                                         # names Views uses, so one variable moves
+#                                         # both callers. Nothing else reads them.
+#
+- insert:
+    - id: iam-mining-repository
+      name: '@deepseek-ai/iam-mining-repository'

@@ -1,0 +1,34 @@
+{
+  "name": "@deepseek-ai/iam-views",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/drawing-entity-query.js",
+    "lib/index.js",
+    "lib/client.js",
+    "cordis.patch.yml",
+    "vendor"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "scripts": {
+    "vendor": "node scripts/vendor-view.mjs",
+    "build:host": "node scripts/build.mjs host",
+    "build:client": "node scripts/build.mjs client",
+    "build": "pnpm run vendor && pnpm run build:host && pnpm run build:client",
+    "prepack": "pnpm run build:host && pnpm run build:client"
+  }
+}

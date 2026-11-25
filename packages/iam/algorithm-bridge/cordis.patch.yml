@@ -1,0 +1,61 @@
+# The bundle layer this package contributes to a profile.
+#
+# A row names the package (not a relative file) so that Node resolution finds
+# the installed copy; the entry resolves the package's `exports["."]`.
+#
+# No `dsh.client` anywhere in this package, and so no browser half to mount: the
+# tools below are host-side, which is what lets this bundle load in the headless,
+# sdk and acp profiles that mount no page.
+#
+# `config:` is optional for the READING tools, and empty is the normal case for
+# them. It is NOT optional if anything is to be EXECUTED: `iam_program_run`,
+# `iam_algorithm_run` and every workspace workflow go through a runner that
+# refuses until one is named, because the code they carry is not this
+# repository's. `IAM/plugin/README.md` says the same thing in prose.
+#
+#   config:
+#     python: /usr/bin/python3            # else $IAX_PYTHON, else python/python3
+#     timeoutSeconds: 300                 # per program run; else 300, max 3600
+#     pythonPath: [/extra/site-packages]  # prepended to PYTHONPATH
+#
+#     programRunner: [/opt/iax/bin/iam-sandbox --profile strict]
+#                                         # ONE of the two ways to execute. The
+#                                         # Python command is appended to this
+#                                         # argv, and the sandbox is expected to
+#                                         # confine the filesystem, the network
+#                                         # and resource use. Nothing in this
+#                                         # repository provides one.
+#     allowUnsafeExecution: true          # the OTHER way, and only for a
+#                                         # trusted local checkout: user code
+#                                         # then runs as this process's user with
+#                                         # no confinement. Setting neither is
+#                                         # the safe default and the reason an
+#                                         # unconfigured install cannot run code.
+#
+#     platformRoot: /opt/iax              # else $IAX_PLATFORM_ROOT, else derived
+#                                         # from where this package sits. The root
+#                                         # holding IAM/ and Mining/, from which
+#                                         # build/<leaf>/<platform>/ is searched
+#                                         # for the native libraries. The package
+#                                         # ships Python and workflows; it cannot
+#                                         # ship the .ex/.dll/.so they call.
+#
+#     workspace: D:/dev/MiningFlatform/workspace
+#                                         # where the user's .iax/ lives: workflows are
+#                                         # read from <workspace>/.iax/workflows and a
+#                                         # program run is recorded under .iax/runs.
+#                                         #
+#                                         # LAST RESORT, and usually unnecessary: the
+#                                         # tools ask the Harness's `workingDirectory`
+#                                         # service for the calling session's own
+#                                         # directory, and a `workspace` argument on the
+#                                         # call beats both. Set this only for a
+#                                         # composition that mounts no session
+#                                         # directories -- and note that a host with
+#                                         # several workspaces open should leave it unset,
+#                                         # because one configured path cannot be right
+#                                         # for all of them.
+#
+- insert:
+    - id: iam-algorithm-bridge
+      name: '@deepseek-ai/iam-algorithm-bridge'

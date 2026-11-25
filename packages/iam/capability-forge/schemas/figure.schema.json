@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "iax.figure/1",
+  "title": "IAX figure",
+  "description": "One figure, derived from an artifact and carrying that artifact's sha256. A model-view is re-rendered from the render block; a manual figure is allowed but must be registered with by and date, and audit names the ones that are not.",
+  "type": "object",
+  "required": ["id", "caption", "kind"],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "section": {
+      "type": "string",
+      "description": "The report section this figure belongs to; the outline assigns it, the author does not hand-type the figure number."
+    },
+    "caption": { "type": "string", "minLength": 1 },
+    "kind": { "enum": ["model-view", "chart", "drawing", "manual"] },
+    "source": {
+      "type": "object",
+      "description": "A pointer into result.json.artifacts, never a bare filename: the hash is what makes an old picture of a new model detectable.",
+      "properties": {
+        "artifact": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "minLength": 16 }
+      },
+      "additionalProperties": true
+    },
+    "render": {
+      "type": "object",
+      "properties": {
+        "view": {
+          "type": "string",
+          "description": "iso | top | front | side | section:<k> | current; the section presets read their axes from the document."
+        },
+        "fit_elements": { "type": "array", "items": { "type": "string" } },
+        "fit_bbox": { "type": ["array", "null"], "items": { "type": "number" } },
+        "camera": {
+          "type": ["array", "null"],
+          "items": { "type": "number" },
+          "description": "panX, panY, rotX, rotY, zoom; when present it beats view, as it does in the renderer."
+        },
+        "overlay": { "type": "array", "items": { "enum": ["axis", "legend", "scale"] } },
+        "legend_groups": {
+          "type": ["string", "null"],
+          "description": "Path to the renderer's --legend-groups JSON, when this figure uses grouped legend rows."
+        },
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "dpi": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "legend": { "type": "object", "additionalProperties": true },
+    "verify": {
+      "type": "object",
+      "properties": {
+        "min_bytes": { "type": "integer", "minimum": 0 },
+        "not_blank": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "by": { "type": "string", "description": "Manual figures only: who made it." },
+    "date": { "type": "string", "description": "Manual figures only: when it was made." },
+    "note": { "type": "string" }
+  },
+  "additionalProperties": true
+}

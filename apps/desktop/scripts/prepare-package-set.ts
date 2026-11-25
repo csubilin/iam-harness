@@ -29,6 +29,8 @@ import { desktopTargetPlatform, resolveDesktopBuildTarget, resolveDesktopTargetB
 
 const DSH_PACKAGE = '@deepseek-ai/dsh'
 const ROOT_PACKAGES = [DSH_PACKAGE, DESKTOP_HOST_PACKAGE] as const
+/** Fork-owned mining bundle; packed by the iam release family and installed by the profile template. */
+const IAM_BUNDLE = '@deepseek-ai/iam-mining-workspace'
 const APP_ROOT = resolve(import.meta.dirname, '..')
 const REPOSITORY_ROOT = resolve(APP_ROOT, '..', '..')
 
@@ -95,7 +97,7 @@ export function selectDesktopPackageClosure(
         && supportsTarget(optional.manifest, 'cpu', target.arch)) visit(dependency)
     }
   }
-  for (const name of ROOT_PACKAGES) {
+  for (const name of available.has(IAM_BUNDLE) ? [...ROOT_PACKAGES, IAM_BUNDLE] : ROOT_PACKAGES) {
     if (!available.has(name)) throw new Error(`desktop package set: packed inputs omit ${name}`)
     visit(name)
   }

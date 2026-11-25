@@ -1,0 +1,29 @@
+{
+  "name": "@deepseek-ai/iam-mining-repository",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/tools.js",
+    "lib/python.js",
+    "lib/native.js",
+    "python/repository.py",
+    "python/vendor",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs host",
+    "prepack": "node scripts/build.mjs host"
+  }
+}

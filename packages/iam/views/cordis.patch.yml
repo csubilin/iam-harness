@@ -1,0 +1,7 @@
+# The bundle layer this package contributes to a profile.
+#
+# A row names the package (not a relative file) so that Node resolution finds
+# the installed copy; the entry resolves the package's `exports["."]`.
+- insert:
+    - id: iam-views
+      name: '@deepseek-ai/iam-views'
