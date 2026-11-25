@@ -99,6 +99,7 @@ export function buildGates(
     // The IAM mining packages are private workspace plugins outside the tsdown
     // graph; their prepack scripts emit the host/client libs the profile loads.
     gates.push(pnpmGate('iam', 'IAM plugin bundle', ['--filter', './packages/iam/*', 'run', 'prepack'], ['native'], env))
+    gates.push(pnpmGate('iam-views', 'IAM view assets', ['run', 'check:iam-views'], ['native'], env))
     for (const step of libraryBuildSteps(root, 'all')) {
       gates.push(libraryGate(step, step.id === 'host-src' ? ['native', ...step.needs] : step.needs, env))
     }

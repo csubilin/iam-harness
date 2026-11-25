@@ -8,6 +8,7 @@ const root = resolve(import.meta.dirname, '..')
 const artifactGraph = {
   'native': [],
   'iam': ['native'],
+  'iam-views': ['native'],
   'host-typert': [],
   'host-src': ['native', 'host-typert'],
   'host-bundle': ['host-src'],

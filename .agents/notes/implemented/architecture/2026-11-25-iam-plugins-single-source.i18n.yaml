@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for 2026-11-25-iam-plugins-single-source.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/architecture/2026-11-25-iam-plugins-single-source.md
+/agent-note-iam-mining-plugins-live-in-one-repository:
+  en: 72f38c5f18695f0e
+  zh: 19802aa9de347a8a
+/agent-note-iam-mining-plugins-live-in-one-repository/problem:
+  en: 54361feb564159d8
+  zh: 9d9282a2541ede50
+/agent-note-iam-mining-plugins-live-in-one-repository/decision:
+  en: 7b05598d633f763e
+  zh: 4d2bd79cc1a4f636
+/agent-note-iam-mining-plugins-live-in-one-repository/consequences:
+  en: 94bbf8acd013845c
+  zh: 045d9e341d438b44

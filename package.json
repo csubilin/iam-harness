@@ -232,7 +232,9 @@
     "gen-provider-data": "tsx packages/llm/llm-pi-ai/scripts/gen-provider-data.ts",
     "verify-provider-data": "tsx packages/llm/llm-pi-ai/scripts/gen-provider-data.ts --check",
     "verify-product-use": "tsx scripts/verify-product-use.ts",
-    "test:iam": "node packages/iam/tests/run.mjs"
+    "test:iam": "node packages/iam/tests/run.mjs",
+    "sync:iam-views": "tsx scripts/sync-iam-views.ts",
+    "check:iam-views": "tsx scripts/sync-iam-views.ts --check"
   },
   "devDependencies": {
     "@deepseek-ai/dsh-hooks-claude-code": "workspace:*",
