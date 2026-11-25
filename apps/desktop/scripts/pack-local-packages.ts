@@ -22,8 +22,7 @@ async function main(): Promise<void> {
   readClientBuildRecord(root, environment)
   const destination = resolve(root, values.out)
   const packed = await packFamilyMembers(root, releaseFamily('dsh'), destination, concurrency)
-  const iam = await packFamilyMembers(root, releaseFamily('iam'), destination, concurrency)
-  console.log(`desktop local pack: ${String(packed.length + iam.length)} tarball(s) in ${destination}`)
+  console.log(`desktop local pack: ${String(packed.length)} tarball(s) in ${destination}`)
 }
 
 await main()

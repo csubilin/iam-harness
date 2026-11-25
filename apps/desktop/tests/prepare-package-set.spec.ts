@@ -69,6 +69,23 @@ describe('desktop package-set selection', () => {
     ]), { platform: 'win32', arch: 'x64' })).toThrow(/omit @deepseek-ai\/dsh-desktop-host/u)
   })
 
+  it('roots the closure at the IAM mining bundle only when its tarball is packed', () => {
+    const available = new Map<string, PackedDesktopPackage>([
+      ['@deepseek-ai/dsh', packed('@deepseek-ai/dsh')],
+      ['@deepseek-ai/dsh-desktop-host', packed('@deepseek-ai/dsh-desktop-host')],
+      ['@deepseek-ai/iam-mining-workspace', packed('@deepseek-ai/iam-mining-workspace', {
+        dependencies: { '@deepseek-ai/iam-views': '0.1.0' },
+      })],
+      ['@deepseek-ai/iam-views', packed('@deepseek-ai/iam-views')],
+    ])
+    const selected = selectDesktopPackageClosure(available, { platform: 'win32', arch: 'x64' })
+    expect(selected.map(entry => entry.manifest.name)).toContain('@deepseek-ai/iam-views')
+    available.delete('@deepseek-ai/iam-mining-workspace')
+    available.delete('@deepseek-ai/iam-views')
+    expect(selectDesktopPackageClosure(available, { platform: 'win32', arch: 'x64' }))
+      .toHaveLength(2)
+  })
+
   it('leaves independently published Office packages to npm resolution', () => {
     const available = new Map<string, PackedDesktopPackage>([
       ['@deepseek-ai/dsh', packed('@deepseek-ai/dsh', {

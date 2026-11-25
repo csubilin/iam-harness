@@ -186,6 +186,7 @@ function main(): void {
   const buildPaths = resolveDesktopTargetBuildPaths()
   const defaultInputs = [
     buildPaths.packedDsh,
+    buildPaths.packedIam,
     buildPaths.packedVendor,
     buildPaths.packedLandlock,
   ]

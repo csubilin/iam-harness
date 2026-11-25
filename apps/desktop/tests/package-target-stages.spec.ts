@@ -141,7 +141,7 @@ it.each([undefined, '2'])('uses bounded Windows packing while retaining signing 
   const settings = workers === undefined ? environment : { ...environment, DSH_DESKTOP_WINDOWS_PACK_CONCURRENCY: workers }
   await packageTarget(parseDesktopPackageInvocation(['win-x64'], 'win32', 'x64'), settings, run)
   const packs = stages.filter(stage => stage.startsWith('run release:pack'))
-  expect(packs).toHaveLength(2)
+  expect(packs).toHaveLength(3)
   for (const stage of packs) expect(stage).toContain(`--concurrency ${workers ?? '4'}`)
   expect(stages).toContain('preflight:windows-signing')
   expect(stages).toContain('run sign:primary-runtime --dsh')
@@ -227,6 +227,8 @@ it.each(['mac-arm64', 'mac-x64', 'win-x64'] as const)('selects branding from the
     expect(build).toBe(unsigned ? 'run build --profile local' : 'run build:official')
     expect(stages.some(stage => stage.startsWith('exec tsx apps/desktop/scripts/pack-local-packages.ts'))).toBe(unsigned)
     expect(stages.some(stage => stage.startsWith('run release:pack --family dsh'))).toBe(!unsigned)
+    // The private IAM family packs through the release command in both modes.
+    expect(stages.some(stage => stage.startsWith('run release:pack --family iam'))).toBe(true)
   }
 })
 
@@ -314,7 +316,7 @@ it.each([undefined, '2'])('passes macOS pack concurrency %s only to workspace pa
   }, run)
   const calls = run.run.mock.calls
   const packs = calls.filter(call => call[0].startsWith('run release:pack'))
-  expect(packs).toHaveLength(2)
+  expect(packs).toHaveLength(3)
   for (const call of packs) expect(call[2].slice(-2)).toEqual(['--concurrency', concurrency ?? '4'])
   for (const call of calls) {
     expect(call[3].env.HTTP_PROXY).toBe(/^run prepare:(?:runtime|dsh)$/u.test(call[0]) ? 'http://downloads.example:8080' : undefined)

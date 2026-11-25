@@ -24,6 +24,7 @@ describe('desktop build paths', () => {
       'dshPnpm',
       'electron',
       'packedDsh',
+      'packedIam',
       'packedVendor',
       'packedLandlock',
     ] as const

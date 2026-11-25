@@ -2967,6 +2967,9 @@ importers:
       '@deepseek-ai/iam-brand':
         specifier: workspace:*
         version: link:../../iam/brand
+      '@deepseek-ai/iam-capability-forge':
+        specifier: workspace:*
+        version: link:../../iam/capability-forge
       '@deepseek-ai/iam-import':
         specifier: workspace:*
         version: link:../../iam/import

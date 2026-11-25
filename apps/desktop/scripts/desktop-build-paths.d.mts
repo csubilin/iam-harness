@@ -15,6 +15,7 @@ export interface DesktopTargetBuildPaths {
   readonly dshPnpm: string
   readonly electron: string
   readonly packedDsh: string
+  readonly packedIam: string
   readonly packedVendor: string
   readonly packedLandlock: string
   readonly downloads: string
