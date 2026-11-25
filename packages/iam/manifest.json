@@ -1,0 +1,209 @@
+{
+  "manifest_version": 1,
+  "comment": [
+    "What this platform contributes to a DeepSeek Harness profile, in one place",
+    "a machine can read. Three things use it: the profile bundles under",
+    "profile/ are assembled from these rows, an agent answers 'what can this",
+    "platform do' from it instead of guessing tool names, and a reader stops",
+    "having to find the four packages by reading a README table.",
+    "",
+    "kind is the extension point a package attaches to, not the business domain",
+    "it serves. provenance says who supplies it and therefore where its source",
+    "lives: a builtin package ships with the product from this directory, a",
+    "workspace package is formed during use and lives in the user's workspace,",
+    "a third-party package arrives from a registry. status distinguishes what",
+    "runs today from what has a reserved place."
+  ],
+  "kinds": {
+    "view": "Registers ctx.documentPreviews and a slot body. Needs a browser half.",
+    "tool": "Registers ctx.tools. Host only, so it loads in headless, sdk and acp.",
+    "chrome": "Occupies a single-occupancy slot such as the sidebar brand.",
+    "profile": "A composition-only bundle: rows and configuration, no code.",
+    "service": "A long-lived platform service other packages call, rather than a tool the model invokes directly.",
+    "workflow": "A domain workflow: inputs, step dependencies, acceptance rules and what it delivers.",
+    "skill-pack": "Knowledge, not a plugin. Lives in the workspace under .dsh/skills and is found by the Harness itself."
+  },
+  "packages": [
+    {
+      "name": "@deepseek-ai/iam-views",
+      "directory": "views",
+      "kind": "view",
+      "provenance": "builtin",
+      "status": "active",
+      "answersFor": [
+        ".iamp",
+        ".iaxp",
+        ".iam",
+        ".iaxm",
+        ".iamh",
+        ".iaxh5"
+      ],
+      "nativePayload": [
+        "IamDrawingView.wasm",
+        "IamMiningView.wasm"
+      ],
+      "profiles": [
+        "web",
+        "desktop"
+      ],
+      "note": "One package, both domains: host/domains.ts is the table, and config.domains on the bundle row trims it to a subset."
+    },
+    {
+      "name": "@deepseek-ai/iam-import",
+      "directory": "import",
+      "kind": "tool",
+      "provenance": "builtin",
+      "status": "active",
+      "answersFor": [
+        "import_mine",
+        "import_drawing",
+        "describe_drawing"
+      ],
+      "requires": {
+        "browser": false,
+        "nativeBinDir": true
+      },
+      "profiles": [
+        "web",
+        "desktop",
+        "headless",
+        "sdk",
+        "acp"
+      ]
+    },
+    {
+      "name": "@deepseek-ai/iam-render",
+      "directory": "render",
+      "kind": "tool",
+      "provenance": "builtin",
+      "status": "active",
+      "answersFor": [
+        "iam_render_document"
+      ],
+      "requires": {
+        "browser": false,
+        "nativeBinDir": true
+      },
+      "profiles": [
+        "web",
+        "desktop",
+        "headless",
+        "sdk",
+        "acp"
+      ],
+      "note": "ONE tool, iam_render_document: the platform's own headless renderer (IamNativeHeadlessMining) as a verb. Host only and no page, so a batch that writes the figures for a report runs in headless/sdk/acp like any other tool. The renderer's optional flags are probed from --help rather than assumed, so this package works against an older build: what the build does not support is named in the result's skipped[] instead of failing the render. The PPM is converted to PNG in-process and removed; a good frame with a bad teardown exit code is still a frame, with the exit code reported beside it."
+    },
+    {
+      "name": "@deepseek-ai/iam-brand",
+      "directory": "brand",
+      "kind": "chrome",
+      "provenance": "builtin",
+      "status": "active",
+      "answersFor": [],
+      "profiles": [
+        "web",
+        "desktop"
+      ]
+    },
+    {
+      "name": "@deepseek-ai/iam-algorithm-bridge",
+      "directory": "algorithm-bridge",
+      "kind": "tool",
+      "provenance": "builtin",
+      "status": "active",
+      "answersFor": [
+        "iam_algorithm_search",
+        "iam_algorithm_describe",
+        "iam_algorithm_run",
+        "iam_mine_describe",
+        "iam_workflow_list",
+        "iam_workflow_run",
+        "iam_workflow_freeze",
+        "iam_program_run"
+      ],
+      "requires": {
+        "browser": false,
+        "nativeBinDir": true,
+        "python": true
+      },
+      "profiles": [
+        "web",
+        "desktop",
+        "headless",
+        "sdk",
+        "acp"
+      ],
+      "note": "The retrieval surface and the execution entry for the algorithm library. Retrieval is two tools rather than one per catalog entry, so the catalog -- whatever size it grows to -- costs the prompt a constant. The execution entry is a Python half the host half spawns; a generated program runs as a grandchild so that a crash costs a tool call and not the session. `iam_algorithm_invoke` was planned and is NOT here: the catalog is invoked from inside a program, which is what the program runner is for."
+    },
+    {
+      "name": "@deepseek-ai/iam-capability-forge",
+      "directory": "capability-forge",
+      "kind": "tool",
+      "provenance": "builtin",
+      "status": "active",
+      "answersFor": [
+        "capability_candidates",
+        "capability_scaffold",
+        "capability_validate",
+        "capability_freeze",
+        "capability_audit"
+      ],
+      "requires": {
+        "browser": false,
+        "python": true,
+        "nativeBinDir": true
+      },
+      "profiles": [
+        "web",
+        "desktop",
+        "headless",
+        "sdk",
+        "acp"
+      ],
+      "note": "The workshop, not a runner: capability_candidates finds recent successful runs worth proposing for freezing, capability_scaffold generates a package from templates, capability_validate checks the contract one finding per rule, capability_freeze calls the AlgorithmBridge's own freeze and records a lock, and capability_audit compares programs, locks, artifacts and figures. Frozen capabilities carry selectable step ids: a later iam_workflow_run can pass steps/resume to run only the steps it needs, and a missing prerequisite is refused rather than silently re-run. The plugin deliberately has no way to execute a capability; execution is iam_workflow_run. A capability is a directory of data, not an npm package, so the second capability costs no install."
+    },
+    {
+      "name": "@deepseek-ai/iam-mining-repository",
+      "directory": "mining-repository",
+      "kind": "tool",
+      "provenance": "builtin",
+      "status": "active",
+      "answersFor": [
+        "iam_mining_show",
+        "iam_mine_edit",
+        "iam_mine_verb",
+        "iam_mine_document",
+        "iam_mine_apply"
+      ],
+      "requires": {
+        "browser": false,
+        "nativeBinDir": true,
+        "python": true
+      },
+      "profiles": [
+        "web",
+        "desktop",
+        "headless",
+        "sdk",
+        "acp"
+      ],
+      "note": "Reading, showing and CHANGING a Mining project. iam_mining_show resolves the elements a caller names and hands them to whichever carrier can draw them -- the sidebar panel for a portable .iam (the view is told what to show, so the document is opened and nothing is copied), or the native editor on the desktop for a columnar .iamh, which the browser build cannot read at all. The other four are the write door, and its whole shape is one rule: an edit does not publish. iam_mine_edit takes a declarative put/attach/erase description and iam_mine_verb runs a run(port) verb -- neither changes the mine, both write a .iaxd delta document; iam_mine_document reads one back in full, naming every resource it replaces and removes and needing no project to do it; and iam_mine_apply publishes one as the next revision, in place, revision-checked against the state the document was written from. It is a tool rather than the service the directory was reserved for, because the model is the one who has to be able to ask for an edit; the service face is what to add when a second package needs to call it. iam_mine_verb runs code the session wrote and therefore requires a configured programRunner; iam_mine_edit runs only this package's own verb and does not."
+    },
+    {
+      "name": "@deepseek-ai/iam-artifact-store",
+      "directory": "artifact-store",
+      "kind": "service",
+      "provenance": "builtin",
+      "status": "planned",
+      "answersFor": [],
+      "profiles": [
+        "web",
+        "desktop",
+        "headless",
+        "sdk",
+        "acp"
+      ],
+      "note": "Candidate and final deliverables, so a computation's result can be reviewed before it becomes a revision."
+    }
+  ]
+}

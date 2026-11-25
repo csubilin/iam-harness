@@ -46,7 +46,7 @@ PLATFORM_ROOT = PACKAGE_ROOT.parents[2]
 SCHEMAS = PACKAGE_ROOT / "schemas"
 TEMPLATES = PACKAGE_ROOT / "templates"
 BRIDGE = Path(os.environ.get("IAM_CAPABILITY_BRIDGE")
-              or (PLUGIN_ROOT / "AlgorithmBridge" / "python" / "bridge.py")).resolve()
+              or (PLUGIN_ROOT / "algorithm-bridge" / "python" / "bridge.py")).resolve()
 
 # ASCII IS NOT A LANGUAGE REQUIREMENT.  A capability is addressed by a directory
 # name, and a Chinese directory name is ordinary on every platform this runs on.

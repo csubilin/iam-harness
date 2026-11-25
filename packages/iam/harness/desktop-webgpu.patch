@@ -1,0 +1,101 @@
+# Desktop-carrier enablement for the IAM view plugins
+#
+# WHAT THIS IS. A patch against the DeepSeek Harness checkout, not against this
+# repository. The two IAM view plugins are installed INTO a harness profile, and
+# on the desktop carrier the preview embeds the IAM WebAssembly view -- which
+# renders through WebGPU. The harness's Electron shell does not enable the one
+# Chromium feature that makes a WebGPU adapter exist on Linux, so the preview
+# fails with "WebGPU adapter is unavailable" and never draws.
+#
+# WHY IT IS A PATCH AND NOT A DEPENDENCY. The harness is a separate checkout that
+# is upgraded on its own schedule; a local edit there is lost the moment it is
+# re-cloned or reset. Keeping the change here means it is versioned with the
+# thing that needs it, and re-applying it after an upgrade is one command.
+#
+# APPLY, after an upgrade or on a fresh checkout:
+#
+#     cd /path/to/deepseek-harness
+#     git apply /path/to/IAX/IAM/plugin/harness/desktop-webgpu.patch
+#     pnpm --filter @deepseek-ai/dsh-desktop run build      # lib/ is gitignored
+#
+# Both halves of that script are needed. `tsc -b` alone emits declarations under
+# lib/types and leaves the runtime bundle (lib/main.js, what Electron actually
+# loads) untouched; `tsdown` alone bundles lib/types and so cannot see a change
+# `tsc -b` has not compiled yet. Measured 2026-10-07: after this patch, `tsdown`
+# on its own left `enable-features` out of lib/main.js, with nothing said.
+#
+# IS IT STILL NEEDED? Upstream may enable this itself one day, and Electron may
+# change its defaults. The check is cheap and does not need the app:
+#
+#     cd apps/desktop
+#     DISPLAY=:0 env -u ELECTRON_RUN_AS_NODE node_modules/.bin/electron \
+#       --enable-logging=stderr -e 'console.log(1)'   # any script, or see the
+#                                                     # GPU process below
+#   or simply, with the app running:
+#     ps -eo args | grep 'type=gpu-process' | tr ' ' '\n' | grep enable-features
+#
+# Vulkan is on when that line contains `Vulkan`. With it off,
+# `app.getGPUFeatureStatus()` reports `"vulkan":"disabled_off"` beside
+# `"glImplementationParts":"(gl=none,angle=none)"` -- no backend for Dawn to use,
+# and no software adapter offered either, because Chromium gates the SwiftShader
+# WebGPU adapter behind the second switch below.
+#
+# TWO SWITCHES, AND WHY EACH.
+#   enable-features=Vulkan       the hardware path; needs a Vulkan driver.
+#   enable-unsafe-webgpu         allows the SwiftShader (CPU) adapter, so a
+#                                machine with no usable Vulkan driver degrades to
+#                                "slow" rather than to "the feature does not
+#                                exist". Measured on a machine that HAS Vulkan:
+#                                with both set, the default requestAdapter() still
+#                                returns the hardware adapter and the fallback
+#                                merely becomes available beside it.
+#
+# WHAT TO EXPECT IF IT IS NOT APPLIED. The preview pane reports, in words, that
+# the hosting browser has no WebGPU adapter and what to do about it -- the IAM
+# side detects the failure, stops its spinner, and explains. What it cannot do is
+# draw: there is no non-WebGPU path for the embedded view.
+#
+# Verified 2026-10-07 against Electron 44.0.0 on Linux/X11: without the switches
+# `requestAdapter()` is null on both an http://127.0.0.1 page and a secure custom
+# scheme (`dsh-app`-like); with `enable-features=Vulkan` it returns the NVIDIA
+# adapter; with `enable-unsafe-webgpu` alone it returns `google/swiftshader`.
+diff --git a/apps/desktop/src/main.ts b/apps/desktop/src/main.ts
+index e2740bd03a..00674b2aea 100644
+--- a/apps/desktop/src/main.ts
++++ b/apps/desktop/src/main.ts
+@@ -141,6 +141,35 @@ protocol.registerSchemesAsPrivileged([{
+   },
+ }])
+ 
++// WebGPU needs Vulkan on Linux, and Chromium does not turn it on by default.
++//
++// Without this the shell hands a renderer `navigator.gpu` and no adapter at all:
++// measured on this machine with this Electron (44.0.0), a page on a secure
++// `dsh-app`-like scheme answers `hasGpu: true, secure: true` and
++// `requestAdapter() === null`, and `app.getGPUFeatureStatus()` reports
++// `"vulkan": "disabled_off"` beside `"glImplementationParts": "(gl=none,angle=none)"`
++// — no backend for Dawn to use, and not even the CPU fallback. The same page in
++// Chrome works, which is why this reads as a carrier difference rather than a
++// page bug: Chrome enables Vulkan for WebGPU for its own reasons.
++//
++// It is a whole-application switch, not a per-page one — Chromium has no
++// narrower knob — so anything embedded that renders through WebGPU depends on
++// it. `appendSwitch` composes with any `enable-features` set elsewhere; nothing
++// else sets one today.
++//
++// The second switch is for the machines the first one does not cover. Vulkan
++// needs a driver: a box with no usable one gets no hardware adapter, and Chromium
++// offers no software WebGPU adapter unless this flag is set — so without it the
++// failure mode on such a machine is "the feature does not exist" rather than "the
++// feature is slow". With it, `requestAdapter()` falls back to SwiftShader.
++//
++// Measured on this machine (NVIDIA, driver 595.91.07): with both switches the
++// default `requestAdapter()` still returns the hardware adapter, and the
++// fallback becomes available beside it. This widens what CAN be used; it does not
++// choose it.
++app.commandLine.appendSwitch('enable-features', 'Vulkan')
++app.commandLine.appendSwitch('enable-unsafe-webgpu')
++
+ interface RuntimeResources {
+   readonly nodeBin: string
+   readonly node: string
