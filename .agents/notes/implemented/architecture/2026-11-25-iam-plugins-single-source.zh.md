@@ -16,4 +16,4 @@ IAM 矿山插件原先在独立的 IAX 仓库 `IAM/plugin` 下开发，又被复
 
 ## 影响
 
-插件改动在本仓库完成和测试；IAX 平台重建会自动刷新 vendored 视图，或报告漂移。插件源码不再跨仓库重复。构建 IAX 的 `web` 目标现在需要本仓库（或 `IAM_HARNESS_ROOT`）；同级 IAX 检出和 `IAX_PLATFORM_ROOT` 都不存在时，平台相关测试会跳过。
+插件改动在本仓库完成和测试；IAX 平台重建会自动刷新 vendored 视图，或报告漂移。插件源码不再跨仓库重复。构建 IAX 的 `web` 目标现在需要本仓库（或 `IAM_HARNESS_ROOT`）；同级 IAX 检出和 `IAX_PLATFORM_ROOT` 都不存在时，平台相关测试会跳过。`pnpm run package:iam` 生成包含这些插件的完整安装包：默认未签名，配置好发布签名环境后可用 `--signed`。

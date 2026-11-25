@@ -36,4 +36,6 @@ A plugin change is made and tested in this repository; an IAX platform rebuild
 refreshes the vendored views automatically or reports drift. No plugin source is
 duplicated across repositories. Building the IAX `web` target now requires this
 checkout (or `IAM_HARNESS_ROOT`); platform-dependent tests skip when neither a
-sibling IAX checkout nor `IAX_PLATFORM_ROOT` is available.
+sibling IAX checkout nor `IAX_PLATFORM_ROOT` is available. `pnpm run package:iam`
+builds the complete installer with the plugins included — unsigned by default,
+or signed with `--signed` when the release signing environment is configured.
