@@ -497,6 +497,10 @@
     # sessions created later. Absent a roster it renders nothing.
     - id: ui-agent-preset
       name: '@deepseek-ai/dsh-client-ui-agent-preset'
+      config:
+        # The deployment fixes Standard for new sessions; Creator enters
+        # through the plugin-create action instead of a mode choice.
+        hero: false
 
     # Region-local More menus: pin or unpin plugin launchers and start a
     # plugin draft.

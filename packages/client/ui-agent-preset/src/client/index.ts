@@ -70,7 +70,7 @@ export const inject = [
  * Mount the roster surfaces: hero chip, session-header label, settings section.
  * @param ctx - the browser plugin context.
  */
-export function apply(ctx: ClientContext): void {
+export function apply(ctx: ClientContext, config: { readonly hero?: boolean } = {}): void {
   const toolsSettings = ctx.configForms.get<{ enabled: boolean }>('ui-settings')
   const presetSettings = ctx.configForms.get(AGENT_PRESET_SETTINGS_NS)
   let active = true
@@ -214,7 +214,7 @@ export function apply(ctx: ClientContext): void {
     })
 
     const startCreatorDraft = () => {
-      // The Host composes the reused draft or new Session; the stage only drives the chip's display and introduction.
+      // The Host composes the reused draft or new Session; the stage only drives the staged-choice display.
       // Navigation opens another blank when the main blank lists a different preset, so that blank is not staged.
       const listed = mainBlank()?.projectionValues?.agentPreset
       if (typeof listed !== 'string' || listed === 'cordis') (mainBlankSeat() ?? unboundSeat).stage('cordis', true)
@@ -223,7 +223,9 @@ export function apply(ctx: ClientContext): void {
 
     scope.effect(() => {
       creatorDraft = startCreatorDraft
-      const chip = scope.slots.register({
+      // Deployments that fix the default preset hide the mode chip; Creator
+      // still enters through the plugin-create action and the settings section.
+      const chip = config.hero === false ? undefined : scope.slots.register({
         name: 'conversation.hero.agentPreset',
         locale: 'settings.agentPreset',
         inject: seatInjected,
@@ -238,7 +240,7 @@ export function apply(ctx: ClientContext): void {
       }, AgentPresetLabel)
       return () => {
         creatorDraft = undefined
-        chip()
+        chip?.()
         label()
       }
     }, 'ui-agent-preset: new-session chip and header label')

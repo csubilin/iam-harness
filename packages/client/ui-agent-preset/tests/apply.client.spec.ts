@@ -518,6 +518,21 @@ describe('ui-agent-preset apply', () => {
     conversation()
   })
 
+  it('hides the mode chip when the deployment fixes the default preset', async () => {
+    const { ctx, slots } = await bench()
+    declareRoot(slots)
+    const conversation = declareConversation(slots)
+    ctx.provide('conversation', {} as never)
+    ctx.provide('sessions', sessionsDouble(ctx, { byId: {} }) as never)
+    ctx.provide('uiWorkspace', uiWorkspaceDouble() as never)
+    await ctx.plugin({ inject: [...inject, 'conversation', 'sessions', 'uiWorkspace'], apply }, { hero: false }).await()
+
+    expect(slots.entries('conversation.hero.agentPreset')).toHaveLength(0)
+    expect(slots.entries('conversation.session.header.actions')).toHaveLength(1)
+    expect(slots.entries('settings.section')).toHaveLength(1)
+    conversation()
+  })
+
   it('moves the chip when the default changes on the settings surface', async () => {
     const { ctx, slots, moveDefault, remote } = await bench()
     declareRoot(slots)
