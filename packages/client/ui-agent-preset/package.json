@@ -81,5 +81,7 @@
     "lib/**/*.js.map",
     "src"
   ],
-  "dependencies": {}
+  "dependencies": {
+    "@deepseek-ai/schemastery": "workspace:~"
+  }
 }

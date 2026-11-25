@@ -525,7 +525,7 @@ describe('ui-agent-preset apply', () => {
     ctx.provide('conversation', {} as never)
     ctx.provide('sessions', sessionsDouble(ctx, { byId: {} }) as never)
     ctx.provide('uiWorkspace', uiWorkspaceDouble() as never)
-    await ctx.plugin({ inject: [...inject, 'conversation', 'sessions', 'uiWorkspace'], apply }, { hero: false }).await()
+    await ctx.plugin({ inject: [...inject, 'conversation', 'sessions', 'uiWorkspace'], apply }, { hero: { get: () => false } }).await()
 
     expect(slots.entries('conversation.hero.agentPreset')).toHaveLength(0)
     expect(slots.entries('conversation.session.header.actions')).toHaveLength(1)
