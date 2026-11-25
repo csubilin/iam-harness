@@ -76,6 +76,12 @@ import { DesktopBackgroundNotice } from './background-notice.ts'
 let focusPrimaryWindow = (): void => {}
 let stopForRecovery = async (): Promise<void> => { await stopOperationReports() }
 let shuttingDown = false
+// A packaged build is a standalone product: keep its Harness home inside Electron
+// userData so it never shows a developer or CLI installation's model credentials,
+// workspaces, or sessions. An explicit DSH_HOME still wins.
+if (app.isPackaged && (process.env.DSH_HOME ?? '').trim() === '') {
+  process.env.DSH_HOME = join(app.getPath('userData'), 'harness')
+}
 /**
  * Set by quit entries that must not ask: crash recovery exit and restart, and the
  * development restart command. The installer handoff has its own before-quit branch.

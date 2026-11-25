@@ -26,7 +26,7 @@
 #                                         # for libIamC, which is what reads
 #                                         # the project.
 #
-#     workspace: D:/dev/MiningFlatform/workspace
+#     workspace: /path/to/workspace
 #                                         # LAST RESORT and usually unnecessary:
 #                                         # the tool asks the Harness's
 #                                         # `workingDirectory` service for the

@@ -40,7 +40,7 @@
 #                                         # ships Python and workflows; it cannot
 #                                         # ship the .ex/.dll/.so they call.
 #
-#     workspace: D:/dev/MiningFlatform/workspace
+#     workspace: /path/to/workspace
 #                                         # where the user's .iax/ lives: workflows are
 #                                         # read from <workspace>/.iax/workflows and a
 #                                         # program run is recorded under .iax/runs.

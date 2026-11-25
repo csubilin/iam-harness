@@ -182,7 +182,7 @@ status=0
 per-class sets are open — their keys are class names — so `report.dropped` and
 `report.lost` in the tool result are declared `additionalProperties: true`.
 
-Measured on the four DWGs at `/home/bilin/src/data/dwg`: 492→492 (`lost=0`),
+Measured on four sample DWGs: 492→492 (`lost=0`),
 5,726→5,725 (`AcDbRegion ×1`), 9,574→9,572 (`AcDbProxyEntity ×2`).
 
 ### The four `kind` values
@@ -312,8 +312,8 @@ slashes.
 
 Not built: a client half, deliberately — see the first section.
 
-Why the background branch was not optional: a 48 MB DWG at
-`/home/bilin/src/data/dwg/大数据.dwg` ran past the 300 s bound and was SIGKILLed.
+Why the background branch was not optional: a 48 MB DWG ran past the 300 s
+bound and was SIGKILLed.
 That is the timeout working, and also a foreground call no agent should have to
 sit through.
 

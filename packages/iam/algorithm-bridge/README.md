@@ -177,8 +177,8 @@ bridge 往 stdout 写**恰好一个 JSON 对象**，进度与拒绝写 stderr。
 ## 在 harness 里跑
 
 ```sh
-cd D:/dev/MiningFlatform/iam-harness
-pnpm dsh plugin --profile web add D:/dev/MiningFlatform/IAX/IAM/plugin/AlgorithmBridge
+cd <iam-harness 仓库>
+pnpm dsh plugin --profile web add <IAX 仓库>/IAM/plugin/AlgorithmBridge
 pnpm dsh --profile web --no-open --port 8899
 ```
 
@@ -390,7 +390,7 @@ node --test IAM/plugin/tests/bridge-tools.test.mjs
 
 测试把插件挂在一个 `fakeTools()` 上，然后**调用**它的定义（含 `execute`），
 所以验的是 profile 真正加载的那份产物。需要已构建的平台与
-`D:/dev/MiningFlatform/workspace/test1.iam` 的那几项会 skip 而不是失败——
+样例工作区里的 `test1.iam` 的那几项会 skip 而不是失败——
 一个因为读者没编 C++ 就变红的测试，会训练人忽略红色。
 
 ### 全栈高分辨率与无损分文件

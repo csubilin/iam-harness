@@ -56,6 +56,9 @@ describe('installer preparation preserves application dependencies', () => {
       if (platform === 'win32') {
         expect(expandMacro(config.nsis.uninstallDisplayName, null, appInfo, {}, false)).toBe('IAM Harness')
         expect(config.nsis.installerLanguages).toEqual(readInstallerLocales().map(locale => locale.id))
+        // The custom welcome page owns directory selection; enabling NSIS's page
+        // collides with its page callbacks.
+        expect(config.nsis.allowToChangeInstallationDirectory).toBe(false)
       }
       const aboutIcon = config.extraResources.find(resource => resource.to === 'icon.png')
       expect(aboutIcon).toBeDefined()

@@ -267,6 +267,8 @@ export function createElectronBuilderConfig(
       oneClick: false,
       perMachine: false,
       allowElevation: false,
+      // The custom welcome page owns directory selection (`installer/pages.nsh`);
+      // NSIS's own page would redefine its page callbacks.
       allowToChangeInstallationDirectory: false,
       installerLanguages: readInstallerLocales().map(locale => locale.id),
       differentialPackage: true,

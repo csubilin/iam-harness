@@ -24,7 +24,7 @@
 
 ```sh
 python IAM/plugin/Workflows/Examples/ByProductOre/workflow.py \
-  --project D:/dev/MiningFlatform/workspace/test1.iam \
+  --project /path/to/test1.iam \
   --block-model merge-2-dimine-block-model \
   --grade merge-2-dimine-cell-1:CU:1 \
   --density 2.7 --subdivide-max-size 3 \

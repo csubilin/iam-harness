@@ -14,7 +14,7 @@
 #   config:
 #     python: /usr/bin/python3            # else $IAX_PYTHON, else python/python3
 #     timeoutMs: 120000                   # per forge call
-#     workspace: D:/dev/MiningFlatform/workspace
+#     workspace: /path/to/workspace
 #                                         # last resort; the tools ask the
 #                                         # Harness's workingDirectory service
 #                                         # first, and a call-time workspace

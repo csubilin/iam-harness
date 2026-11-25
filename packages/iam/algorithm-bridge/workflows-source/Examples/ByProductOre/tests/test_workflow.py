@@ -15,6 +15,7 @@ a default density, and an empty selector read as an empty answer.
 
 import hashlib
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -32,7 +33,7 @@ sys.path.insert(0, str(WORKFLOW))
 import workflow                                              # noqa: E402
 
 REPO = WORKFLOW.parents[3]
-PROJECT = Path("D:/dev/MiningFlatform/workspace/test1.iam")
+PROJECT = Path(os.environ.get("IAM_TEST_PROJECT", "test1.iam"))
 BLOCK_MODEL = "merge-2-dimine-block-model"
 # A metal is named, not just a column: the model declares every field's unit as
 # '1' with no description, so nothing in the project says CU is a grade or what
@@ -55,7 +56,7 @@ def platform_available():
 
 
 AVAILABLE = platform_available()
-SKIP = "needs a Mining-enabled IAM library and D:/dev/MiningFlatform/workspace/test1.iam"
+SKIP = "needs a Mining-enabled IAM library and a project at $IAM_TEST_PROJECT"
 
 
 def narrow_glossary(directory, roadways):

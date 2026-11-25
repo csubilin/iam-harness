@@ -190,7 +190,7 @@ pnpm dsh web --no-open
 Forward slashes and not backslashes: the path is handed to `pnpm add` as one
 argument, and a backslash is the one character pnpm's specifier parser has a
 reading for that is not a directory separator. Measured 2026-10-09 — `dsh plugin
---profile web add D:/dev/.../Views` records `link:D:/dev/.../Views` in
+--profile web add <path>/Views` records `link:<path>/Views` in
 the profile's `package.json` and reconciles it into `dsh.profile.bundles`.
 
 **Windows needs Developer Mode on**, the same prerequisite the Harness's own CI
