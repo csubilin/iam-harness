@@ -55,7 +55,10 @@ const env: NodeJS.ProcessEnv = {
 // Git Bash's GNU tar reads D:\... as a remote host; the pack steps need Windows bsdtar.
 if (process.platform === 'win32') {
   const system32 = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32')
-  env.PATH = `${system32};${env.PATH ?? ''}`
+  // PowerShell and cmd spell it `Path`; a copied env object reads keys
+  // case-sensitively, so `env.PATH` would leave the child with only System32.
+  const key = Object.keys(env).find(name => name.toLowerCase() === 'path') ?? 'PATH'
+  env[key] = `${system32};${env[key] ?? ''}`
 }
 // The committed wasm views and native viewers must match the platform build they came from.
 pnpm(['run', 'check:iam-views'], env)
