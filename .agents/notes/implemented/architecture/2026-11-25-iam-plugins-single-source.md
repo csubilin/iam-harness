@@ -40,14 +40,14 @@ sibling IAX checkout nor `IAX_PLATFORM_ROOT` is available. `pnpm run package:iam
 builds the complete installer with the plugins included — unsigned by default,
 or signed with `--signed` when the release signing environment is configured.
 
-The native viewers are part of that installer. `pnpm run sync:iam-native` copies
-`IamNativeDrawingView` and `IamNativeMiningView`, every engine DLL beside them,
-the icon resource tree and the SHX fonts from the IAX native build into
-`packages/iam/views/vendor-native`; the 66 test programs are the trim, and the
-chrome's 60 MiB CJK UI fonts are left to the Windows fallback.
-`pnpm run check:iam-native` verifies the committed copy (skipping when no IAX
-build exists) and `package:iam` runs it. electron-builder ships the tree as
-`resources/iam-native`, and a packaged application points the Host at it with
-`IAM_NATIVE_DIR`/`IAM_FONTS_DIR` (an explicit setting still wins), so the views
-plugin's native browse/edit actions launch the native viewer without any
-configuration.
+The native viewers are part of that installer, read from the IAX checkout while
+packing. electron-builder copies the two viewers, every engine DLL beside them,
+the icon resource tree and the SHX fonts out of `IAX/build/exe/win-native` (its
+test programs filtered out), `IAX/resource` (its 60 MiB CJK chrome fonts
+dropped) and `IAX/Fonts` into `resources/iam-native`; `package:iam` stops with a
+clear error when those paths are missing, and `IAX_ROOT`, `IAX_NATIVE_DIR`,
+`IAX_FONTS` or `IAX_RESOURCE` point a build at another tree. The packaged
+application then points the Host at the copies with `IAM_NATIVE_DIR` /
+`IAM_FONTS_DIR` (an explicit setting still wins), so the views plugin's native
+browse/edit actions launch without configuration. None of it is committed: an
+IAX rebuild is picked up by the next packaging run rather than by a sync commit.

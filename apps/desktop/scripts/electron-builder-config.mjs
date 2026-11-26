@@ -67,6 +67,11 @@ export function createElectronBuilderConfig(
   if (skipNotarization && (unsigned || resolvedPlatform !== 'darwin')) throw new Error('Skipping notarization requires a signed macOS build')
   const packagesMacOS = targetPlatform === 'darwin' || (targetPlatform === undefined && hostPlatform === 'darwin')
   const packagesWindows = resolvedPlatform === 'win32'
+  // The IAM native viewers are read from the IAX checkout's native build while
+  // packing; IAX_ROOT / IAX_NATIVE_DIR / IAX_FONTS / IAX_RESOURCE move a build
+  // to another tree.
+  const iaxRoot = env.IAX_ROOT ?? join(fileURLToPath(new URL('../../..', import.meta.url)), '..', 'IAX')
+  const iaxNative = env.IAX_NATIVE_DIR ?? join(iaxRoot, 'build', 'exe', 'win-native')
   const policy = packagesMacOS && unsigned ? undefined : resolveDesktopPolicyEnvironment(env)
   if (resolvedPlatform === 'win32') installWindowsDirectoryInstaller()
   const macOSSigning = packagesMacOS && !unsigned ? resolveMacOSSigningEnvironment(env) : undefined
@@ -163,11 +168,15 @@ export function createElectronBuilderConfig(
       { from: fileURLToPath(new URL('../resources/icon-windows.png', import.meta.url)), to: 'icon.png' },
       // Windows tray bitmaps; macOS keeps the Dock and ships no menu bar icon.
       ...(packagesWindows ? [{ from: fileURLToPath(new URL('../resources/tray-windows.ico', import.meta.url)), to: 'tray.ico' }] : []),
-      // IAM native viewers and their font set, trimmed to the viewers' DLL closure;
-      // main.ts points the Host at these with IAM_NATIVE_DIR and IAM_FONTS_DIR.
+      // IAM native viewers, their engine DLLs, icon resources and SHX fonts from
+      // the IAX build; main.ts points the Host at them with IAM_NATIVE_DIR and
+      // IAM_FONTS_DIR. The filter keeps the test programs in that directory out.
       ...(packagesWindows ? [
-        { from: fileURLToPath(new URL('../../../packages/iam/views/vendor-native/win-x64', import.meta.url)), to: 'iam-native/win-x64' },
-        { from: fileURLToPath(new URL('../../../packages/iam/views/vendor-native/fonts', import.meta.url)), to: 'iam-native/fonts' },
+        { from: iaxNative, to: 'iam-native/win-x64',
+          filter: ['*.dll', 'IamNativeDrawingView.exe', 'IamNativeMiningView.exe'] },
+        { from: env.IAX_RESOURCE ?? join(iaxRoot, 'resource'), to: 'iam-native/win-x64/resource',
+          filter: ['**/*', '!fonts', '!fonts/**'] },
+        { from: env.IAX_FONTS ?? join(iaxRoot, 'Fonts'), to: 'iam-native/fonts' },
       ] : []),
     ],
     mac: {

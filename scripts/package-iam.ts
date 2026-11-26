@@ -41,6 +41,23 @@ function installerFiles(target: string): string[] {
   return found.sort()
 }
 
+/** A Windows installer embeds the viewers it reads from the IAX native build at pack time. */
+function requireNativeViewers(): void {
+  const iax = process.env.IAX_ROOT ?? join(ROOT, '..', 'IAX')
+  const native = process.env.IAX_NATIVE_DIR ?? join(iax, 'build', 'exe', 'win-native')
+  const required = [
+    join(native, 'IamNativeDrawingView.exe'),
+    join(native, 'IamNativeMiningView.exe'),
+    process.env.IAX_FONTS ?? join(iax, 'Fonts'),
+    process.env.IAX_RESOURCE ?? join(iax, 'resource'),
+  ]
+  const missing = required.filter(path => !existsSync(path))
+  if (missing.length > 0) {
+    throw new Error(`package:iam: the Windows installer ships the IAX native viewers, but ${missing.join(', ')} is missing; `
+      + 'build the IAX native target or set IAX_NATIVE_DIR / IAX_FONTS / IAX_RESOURCE')
+  }
+}
+
 const forwarded = process.argv.slice(2).filter(argument => argument !== '--')
 const signed = forwarded.includes('--signed')
 const argumentsToPackage = forwarded.filter(argument => argument !== '--signed')
@@ -60,13 +77,13 @@ if (process.platform === 'win32') {
   const key = Object.keys(env).find(name => name.toLowerCase() === 'path') ?? 'PATH'
   env[key] = `${system32};${env[key] ?? ''}`
 }
-// The committed wasm views and native viewers must match the platform build they came from.
+// The committed wasm views must match the platform build they came from.
 pnpm(['run', 'check:iam-views'], env)
-pnpm(['run', 'check:iam-native'], env)
-pnpm(['run', 'package:desktop', '--', ...argumentsToPackage], env)
-
 const explicitTarget = forwarded.find(argument => TARGET_NAMES.has(argument))
 const target = explicitTarget ?? (process.platform === 'win32' ? 'win-x64' : process.arch === 'arm64' ? 'mac-arm64' : 'mac-x64')
+if (target === 'win-x64') requireNativeViewers()
+pnpm(['run', 'package:desktop', '--', ...argumentsToPackage], env)
+
 const artifacts = installerFiles(target)
 console.log(artifacts.length === 0
   ? `package:iam: no installer found under apps/desktop/.desktop-build/targets/${target}`

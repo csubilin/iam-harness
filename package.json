@@ -235,8 +235,6 @@
     "test:iam": "node packages/iam/tests/run.mjs",
     "sync:iam-views": "tsx scripts/sync-iam-views.ts",
     "check:iam-views": "tsx scripts/sync-iam-views.ts --check",
-    "sync:iam-native": "tsx scripts/sync-iam-native.ts",
-    "check:iam-native": "tsx scripts/sync-iam-native.ts --check",
     "package:iam": "tsx scripts/package-iam.ts"
   },
   "devDependencies": {
