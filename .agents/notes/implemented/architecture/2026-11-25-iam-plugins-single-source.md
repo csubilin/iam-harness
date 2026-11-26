@@ -39,3 +39,15 @@ checkout (or `IAM_HARNESS_ROOT`); platform-dependent tests skip when neither a
 sibling IAX checkout nor `IAX_PLATFORM_ROOT` is available. `pnpm run package:iam`
 builds the complete installer with the plugins included — unsigned by default,
 or signed with `--signed` when the release signing environment is configured.
+
+The native viewers are part of that installer. `pnpm run sync:iam-native` copies
+`IamNativeDrawingView` and `IamNativeMiningView`, every engine DLL beside them,
+the icon resource tree and the SHX fonts from the IAX native build into
+`packages/iam/views/vendor-native`; the 66 test programs are the trim, and the
+chrome's 60 MiB CJK UI fonts are left to the Windows fallback.
+`pnpm run check:iam-native` verifies the committed copy (skipping when no IAX
+build exists) and `package:iam` runs it. electron-builder ships the tree as
+`resources/iam-native`, and a packaged application points the Host at it with
+`IAM_NATIVE_DIR`/`IAM_FONTS_DIR` (an explicit setting still wins), so the views
+plugin's native browse/edit actions launch the native viewer without any
+configuration.

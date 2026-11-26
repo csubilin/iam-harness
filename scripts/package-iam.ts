@@ -57,8 +57,9 @@ if (process.platform === 'win32') {
   const system32 = join(process.env.SystemRoot ?? 'C:\\Windows', 'System32')
   env.PATH = `${system32};${env.PATH ?? ''}`
 }
-// The committed wasm views must match the platform build they came from.
+// The committed wasm views and native viewers must match the platform build they came from.
 pnpm(['run', 'check:iam-views'], env)
+pnpm(['run', 'check:iam-native'], env)
 pnpm(['run', 'package:desktop', '--', ...argumentsToPackage], env)
 
 const explicitTarget = forwarded.find(argument => TARGET_NAMES.has(argument))

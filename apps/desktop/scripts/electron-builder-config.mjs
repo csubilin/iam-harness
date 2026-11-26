@@ -163,6 +163,12 @@ export function createElectronBuilderConfig(
       { from: fileURLToPath(new URL('../resources/icon-windows.png', import.meta.url)), to: 'icon.png' },
       // Windows tray bitmaps; macOS keeps the Dock and ships no menu bar icon.
       ...(packagesWindows ? [{ from: fileURLToPath(new URL('../resources/tray-windows.ico', import.meta.url)), to: 'tray.ico' }] : []),
+      // IAM native viewers and their font set, trimmed to the viewers' DLL closure;
+      // main.ts points the Host at these with IAM_NATIVE_DIR and IAM_FONTS_DIR.
+      ...(packagesWindows ? [
+        { from: fileURLToPath(new URL('../../../packages/iam/views/vendor-native/win-x64', import.meta.url)), to: 'iam-native/win-x64' },
+        { from: fileURLToPath(new URL('../../../packages/iam/views/vendor-native/fonts', import.meta.url)), to: 'iam-native/fonts' },
+      ] : []),
     ],
     mac: {
       icon: fileURLToPath(new URL('../resources/icon-macos.png', import.meta.url)),

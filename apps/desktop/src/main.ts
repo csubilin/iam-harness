@@ -253,6 +253,21 @@ function runtimeResources(): RuntimeResources {
   return { node, nodeBin, pnpm, dsh }
 }
 
+/**
+ * The IAM native viewers shipped beside the packaged application, for the views
+ * plugin's "browse natively" / "edit natively" actions. An explicit
+ * IAM_NATIVE_DIR / IAM_FONTS_DIR (or AutoCAD's ACAD) still wins.
+ */
+function nativeEditorEnvironment(): NodeJS.ProcessEnv {
+  if (!app.isPackaged || process.platform !== 'win32') return {}
+  const root = join(process.resourcesPath, 'iam-native')
+  return {
+    ...(process.env.IAM_NATIVE_DIR === undefined ? { IAM_NATIVE_DIR: join(root, 'win-x64') } : {}),
+    ...(process.env.IAM_FONTS_DIR === undefined && process.env.ACAD === undefined
+      ? { IAM_FONTS_DIR: join(root, 'fonts') } : {}),
+  }
+}
+
 function developmentPrimaryRuntime(): string {
   const directory = process.env.DSH_DESKTOP_PRIMARY_RUNTIME_DIR
   if (directory === undefined || directory === '') {
@@ -573,7 +588,7 @@ async function main(): Promise<void> {
   const backend = new DesktopBackendController((onFailure) => {
     const hostInspectPort = developmentHostInspectPort(development)
     const host = new DesktopHostProcess(resources.node, resources.dsh, activeProject,
-      hostInspectPort, { ...hostEnvironment, DSH_CLIENT_VERSION: desktopClientVersion() }, onFailure,
+      hostInspectPort, { ...hostEnvironment, ...nativeEditorEnvironment(), DSH_CLIENT_VERSION: desktopClientVersion() }, onFailure,
       primaryRuntime,
       resources, (next) => { platformView.setSession(next) }, (record) => {
         operationJournal ??= new OperationJournal(join(app.getPath('userData'), 'plugin-operations'), {

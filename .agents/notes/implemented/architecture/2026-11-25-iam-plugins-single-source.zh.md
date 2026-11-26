@@ -17,3 +17,5 @@ IAM 矿山插件原先在独立的 IAX 仓库 `IAM/plugin` 下开发，又被复
 ## 影响
 
 插件改动在本仓库完成和测试；IAX 平台重建会自动刷新 vendored 视图，或报告漂移。插件源码不再跨仓库重复。构建 IAX 的 `web` 目标现在需要本仓库（或 `IAM_HARNESS_ROOT`）；同级 IAX 检出和 `IAX_PLATFORM_ROOT` 都不存在时，平台相关测试会跳过。`pnpm run package:iam` 生成包含这些插件的完整安装包：默认未签名，配置好发布签名环境后可用 `--signed`。
+
+原生查看器也随安装包分发。`pnpm run sync:iam-native` 把 `IamNativeDrawingView`、`IamNativeMiningView`、二者旁边的全部引擎 DLL、图标资源树和 SHX 字体从 IAX 原生构建复制到 `packages/iam/views/vendor-native`（66 个测试程序就是裁剪掉的部分；chrome 的 60 MiB 中文字体交给 Windows 回退）。`pnpm run check:iam-native` 校验已提交的副本（没有 IAX 构建时跳过），`package:iam` 会执行它。electron-builder 把它作为 `resources/iam-native` 打进安装包，打包后的应用通过 `IAM_NATIVE_DIR`/`IAM_FONTS_DIR` 让 Host 指向它（显式设置优先），因此可视化窗口的"在原生中浏览/编辑"按钮无需任何配置即可启动原生查看器。
