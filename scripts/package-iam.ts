@@ -23,7 +23,7 @@ function requireNodeFloor(): void {
     || major === 24 && (minor > 22 || (minor === 22 && patch >= 3))
   if (!supported) {
     throw new Error(`package:iam needs Node ${String(engines)} (current ${process.versions.node}); `
-      + 'use D:\\tools\\node-v24.22.3-win-x64 on this host')
+      + 'install a matching Node before running it')
   }
 }
 
