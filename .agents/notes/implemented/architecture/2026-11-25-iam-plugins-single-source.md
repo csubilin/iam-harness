@@ -56,8 +56,11 @@ The algorithm bridge travels the same way. Python cannot read an asar archive,
 so the packaged application keeps `resources/iam-algorithms` outside it:
 `python/bridge.py`, `python/vendor/iam_algorithms` and `iam` from the IAX build,
 the built workflows, and a Python runtime matched to the bindings
-(`IAM_PYTHON_RUNTIME_DIR`, required at packaging time — the bindings are MSYS2
-cp314 builds and import `libpython3.14.dll`). `main.ts` names the script and
+(`pnpm run stage:iam-python` stages it from the UCRT64 Python at
+`IAM_MSYS2_ROOT`, default `D:\msys64`, into
+`apps/desktop/.desktop-build/iam-python-runtime`; packaging runs it when
+`IAM_PYTHON_RUNTIME_DIR` is unset — the bindings are MSYS2 cp314 builds and
+import `libpython3.14.dll`). `main.ts` names the script and
 interpreter to the Host with `IAM_BRIDGE_SCRIPT` / `IAM_BRIDGE_PYTHON`, and the
 bridge host prepends `IAM_NATIVE_DIR` to PATH so the nanobind extension finds
 the IAX DLLs beside the native viewers.

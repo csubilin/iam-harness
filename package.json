@@ -235,6 +235,7 @@
     "test:iam": "node packages/iam/tests/run.mjs",
     "sync:iam-views": "tsx scripts/sync-iam-views.ts",
     "check:iam-views": "tsx scripts/sync-iam-views.ts --check",
+    "stage:iam-python": "tsx scripts/stage-iam-python.ts",
     "package:iam": "tsx scripts/package-iam.ts",
     "package:app": "tsx scripts/publish-app.ts"
   },

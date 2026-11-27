@@ -2,6 +2,7 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
+import { pythonSource, stageIfStale, STAGED_RUNTIME } from './stage-iam-python.ts'
 
 const ROOT = resolve(import.meta.dirname, '..')
 const TARGET_NAMES = new Set(['win-x64', 'mac-arm64', 'mac-x64'])
@@ -60,21 +61,21 @@ function requireNativeViewers(): void {
 
 /**
  * A Windows installer also carries the algorithm bridge's Python half: the IAX
- * bindings and a Python 3.14 runtime matched to them, which the build machine
- * supplies (publish-app takes the same runtime as its --python).
+ * bindings and a Python 3.14 runtime matched to them, staged out of the UCRT64
+ * Python the bindings were built with unless the environment names another.
  */
-function requireIamAlgorithms(): void {
-  const iax = process.env.IAX_ROOT ?? join(ROOT, '..', 'IAX')
-  const algorithms = process.env.IAM_PYTHON_PACKAGE_DIR
+function requireIamAlgorithms(environment: NodeJS.ProcessEnv): void {
+  const iax = environment.IAX_ROOT ?? join(ROOT, '..', 'IAX')
+  const algorithms = environment.IAM_PYTHON_PACKAGE_DIR
     ?? join(iax, 'build', 'CMakePlatforms', 'win-native', 'IAM', 'Host', 'Python')
-  const mining = process.env.IAM_MINING_PYTHON_DIR ?? join(iax, 'Mining', 'Host', 'python')
-  const runtime = process.env.IAM_PYTHON_RUNTIME_DIR
+  const mining = environment.IAM_MINING_PYTHON_DIR ?? join(iax, 'Mining', 'Host', 'python')
+  const runtime = environment.IAM_PYTHON_RUNTIME_DIR
   const python = runtime === undefined ? [] : [
     join(runtime, 'python.exe'), join(runtime, 'bin', 'python.exe'), join(runtime, 'bin', 'python3'),
   ].filter(candidate => existsSync(candidate))
   const problems = [
     ...runtime === undefined
-      ? ['IAM_PYTHON_RUNTIME_DIR is not set (point it at a Python 3.14 runtime matched to the IAX bindings)']
+      ? ['IAM_PYTHON_RUNTIME_DIR is not set and staging one failed']
       : python.length === 0 ? [`${runtime} has no python executable`] : [],
     ...existsSync(join(algorithms, 'iam_algorithms')) ? [] : [`${join(algorithms, 'iam_algorithms')} is missing`],
     ...existsSync(join(mining, 'iam')) ? [] : [`${join(mining, 'iam')} is missing`],
@@ -109,8 +110,14 @@ pnpm(['run', 'check:iam-views'], env)
 const explicitTarget = forwarded.find(argument => TARGET_NAMES.has(argument))
 const target = explicitTarget ?? (process.platform === 'win32' ? 'win-x64' : process.arch === 'arm64' ? 'mac-arm64' : 'mac-x64')
 if (target === 'win-x64') {
+  // The bindings are MSYS2 cp314 builds; stage the matching interpreter once
+  // unless the environment already names one.
+  if (env.IAM_PYTHON_RUNTIME_DIR === undefined) {
+    stageIfStale(pythonSource(process.env), STAGED_RUNTIME)
+    env.IAM_PYTHON_RUNTIME_DIR = STAGED_RUNTIME
+  }
   requireNativeViewers()
-  requireIamAlgorithms()
+  requireIamAlgorithms(env)
 }
 pnpm(['run', 'package:desktop', '--', ...argumentsToPackage], env)
 

@@ -22,7 +22,9 @@ IAM 矿山插件原先在独立的 IAX 仓库 `IAM/plugin` 下开发，又被复
 
 算法桥接也走同一条路。Python 读不了 asar 归档，所以打包后的应用在它之外保留
 `resources/iam-algorithms`：来自 IAX 构建的 `python/bridge.py`、`python/vendor/iam_algorithms`
-和 `iam`，已构建的 workflows，以及与绑定匹配的 Python 运行时（`IAM_PYTHON_RUNTIME_DIR`，打包时必填——
+和 `iam`，已构建的 workflows，以及与绑定匹配的 Python 运行时（`pnpm run stage:iam-python`
+从 `IAM_MSYS2_ROOT`（默认 `D:\msys64`）的 UCRT64 Python 生成精简运行时到
+`apps/desktop/.desktop-build/iam-python-runtime`；`IAM_PYTHON_RUNTIME_DIR` 未设置时打包会自动执行——
 绑定是 MSYS2 的 cp314 构建并导入 `libpython3.14.dll`）。`main.ts` 通过 `IAM_BRIDGE_SCRIPT` /
 `IAM_BRIDGE_PYTHON` 把脚本和解释器交给 Host，桥接插件再把 `IAM_NATIVE_DIR` 前置到 PATH，
 让 nanobind 扩展找到原生查看器旁边的 IAX DLL。
