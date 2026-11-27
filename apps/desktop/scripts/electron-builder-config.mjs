@@ -70,8 +70,12 @@ export function createElectronBuilderConfig(
   // The IAM native viewers are read from the IAX checkout's native build while
   // packing; IAX_ROOT / IAX_NATIVE_DIR / IAX_FONTS / IAX_RESOURCE move a build
   // to another tree.
-  const iaxRoot = env.IAX_ROOT ?? join(fileURLToPath(new URL('../../..', import.meta.url)), '..', 'IAX')
+  const repositoryRoot = fileURLToPath(new URL('../../..', import.meta.url))
+  const iaxRoot = env.IAX_ROOT ?? join(repositoryRoot, '..', 'IAX')
   const iaxNative = env.IAX_NATIVE_DIR ?? join(iaxRoot, 'build', 'exe', 'win-native')
+  const iaxAlgorithms = env.IAM_PYTHON_PACKAGE_DIR
+    ?? join(iaxRoot, 'build', 'CMakePlatforms', 'win-native', 'IAM', 'Host', 'Python')
+  const iaxMining = env.IAM_MINING_PYTHON_DIR ?? join(iaxRoot, 'Mining', 'Host', 'python')
   const policy = packagesMacOS && unsigned ? undefined : resolveDesktopPolicyEnvironment(env)
   if (resolvedPlatform === 'win32') installWindowsDirectoryInstaller()
   const macOSSigning = packagesMacOS && !unsigned ? resolveMacOSSigningEnvironment(env) : undefined
@@ -195,6 +199,17 @@ export function createElectronBuilderConfig(
         { from: env.IAX_RESOURCE ?? join(iaxRoot, 'resource'), to: 'iam-native/win-x64/resource',
           filter: ['**/*', '!fonts', '!fonts/**'] },
         { from: env.IAX_FONTS ?? join(iaxRoot, 'Fonts'), to: 'iam-native/fonts' },
+        // The algorithm bridge's Python half: Python cannot open app.asar, so the
+        // script, its vendored bindings and the matching interpreter are real
+        // files here. main.ts points the Host at them.
+        ...(env.IAM_PYTHON_RUNTIME_DIR === undefined
+          ? [] : [{ from: env.IAM_PYTHON_RUNTIME_DIR, to: 'iam-algorithms/python-runtime' }]),
+        { from: join(iaxAlgorithms, 'iam_algorithms'), to: 'iam-algorithms/python/vendor/iam_algorithms' },
+        { from: join(iaxMining, 'iam'), to: 'iam-algorithms/python/vendor/iam' },
+        { from: join(repositoryRoot, 'packages', 'iam', 'algorithm-bridge', 'python', 'bridge.py'),
+          to: 'iam-algorithms/python/bridge.py' },
+        { from: join(repositoryRoot, 'packages', 'iam', 'algorithm-bridge', 'workflows'),
+          to: 'iam-algorithms/workflows' },
       ] : []),
     ],
     mac: {

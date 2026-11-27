@@ -9,6 +9,7 @@ import { isDesktopUpdateChannel } from './settings-file.ts'
 import type { ProductEventMap, ProductEvent } from '@deepseek-ai/dsh-client-product-analytics/types'
 import { WINDOWS_TITLEBAR_HEIGHT } from './windows-layout.ts'
 import { access, readFile, writeFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
@@ -265,6 +266,26 @@ function nativeEditorEnvironment(): NodeJS.ProcessEnv {
     ...(process.env.IAM_NATIVE_DIR === undefined ? { IAM_NATIVE_DIR: join(root, 'win-x64') } : {}),
     ...(process.env.IAM_FONTS_DIR === undefined && process.env.ACAD === undefined
       ? { IAM_FONTS_DIR: join(root, 'fonts') } : {}),
+  }
+}
+
+/**
+ * The algorithm bridge Python half a packaged Desktop carries outside app.asar:
+ * Python cannot read an asar archive, so the script, its vendored bindings and
+ * the interpreter matched to them are real files under resources. An explicit
+ * IAM_BRIDGE_SCRIPT / IAM_BRIDGE_PYTHON still wins.
+ */
+function iamAlgorithmsEnvironment(): NodeJS.ProcessEnv {
+  if (!app.isPackaged || process.platform !== 'win32') return {}
+  const root = join(process.resourcesPath, 'iam-algorithms')
+  if (!existsSync(join(root, 'python', 'bridge.py'))) return {}
+  const python = [join(root, 'python-runtime', 'python.exe'),
+    join(root, 'python-runtime', 'bin', 'python.exe'),
+    join(root, 'python-runtime', 'bin', 'python3')].find(candidate => existsSync(candidate))
+  return {
+    ...(process.env.IAM_BRIDGE_SCRIPT === undefined
+      ? { IAM_BRIDGE_SCRIPT: join(root, 'python', 'bridge.py') } : {}),
+    ...(python === undefined || process.env.IAM_BRIDGE_PYTHON !== undefined ? {} : { IAM_BRIDGE_PYTHON: python }),
   }
 }
 
@@ -588,7 +609,10 @@ async function main(): Promise<void> {
   const backend = new DesktopBackendController((onFailure) => {
     const hostInspectPort = developmentHostInspectPort(development)
     const host = new DesktopHostProcess(resources.node, resources.dsh, activeProject,
-      hostInspectPort, { ...hostEnvironment, ...nativeEditorEnvironment(), DSH_CLIENT_VERSION: desktopClientVersion() }, onFailure,
+      hostInspectPort, {
+        ...hostEnvironment, ...nativeEditorEnvironment(), ...iamAlgorithmsEnvironment(),
+        DSH_CLIENT_VERSION: desktopClientVersion(),
+      }, onFailure,
       primaryRuntime,
       resources, (next) => { platformView.setSession(next) }, (record) => {
         operationJournal ??= new OperationJournal(join(app.getPath('userData'), 'plugin-operations'), {

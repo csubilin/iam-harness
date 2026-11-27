@@ -51,3 +51,13 @@ application then points the Host at the copies with `IAM_NATIVE_DIR` /
 `IAM_FONTS_DIR` (an explicit setting still wins), so the views plugin's native
 browse/edit actions launch without configuration. None of it is committed: an
 IAX rebuild is picked up by the next packaging run rather than by a sync commit.
+
+The algorithm bridge travels the same way. Python cannot read an asar archive,
+so the packaged application keeps `resources/iam-algorithms` outside it:
+`python/bridge.py`, `python/vendor/iam_algorithms` and `iam` from the IAX build,
+the built workflows, and a Python runtime matched to the bindings
+(`IAM_PYTHON_RUNTIME_DIR`, required at packaging time — the bindings are MSYS2
+cp314 builds and import `libpython3.14.dll`). `main.ts` names the script and
+interpreter to the Host with `IAM_BRIDGE_SCRIPT` / `IAM_BRIDGE_PYTHON`, and the
+bridge host prepends `IAM_NATIVE_DIR` to PATH so the nanobind extension finds
+the IAX DLLs beside the native viewers.

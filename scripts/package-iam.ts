@@ -58,6 +58,33 @@ function requireNativeViewers(): void {
   }
 }
 
+/**
+ * A Windows installer also carries the algorithm bridge's Python half: the IAX
+ * bindings and a Python 3.14 runtime matched to them, which the build machine
+ * supplies (publish-app takes the same runtime as its --python).
+ */
+function requireIamAlgorithms(): void {
+  const iax = process.env.IAX_ROOT ?? join(ROOT, '..', 'IAX')
+  const algorithms = process.env.IAM_PYTHON_PACKAGE_DIR
+    ?? join(iax, 'build', 'CMakePlatforms', 'win-native', 'IAM', 'Host', 'Python')
+  const mining = process.env.IAM_MINING_PYTHON_DIR ?? join(iax, 'Mining', 'Host', 'python')
+  const runtime = process.env.IAM_PYTHON_RUNTIME_DIR
+  const python = runtime === undefined ? [] : [
+    join(runtime, 'python.exe'), join(runtime, 'bin', 'python.exe'), join(runtime, 'bin', 'python3'),
+  ].filter(candidate => existsSync(candidate))
+  const problems = [
+    ...runtime === undefined
+      ? ['IAM_PYTHON_RUNTIME_DIR is not set (point it at a Python 3.14 runtime matched to the IAX bindings)']
+      : python.length === 0 ? [`${runtime} has no python executable`] : [],
+    ...existsSync(join(algorithms, 'iam_algorithms')) ? [] : [`${join(algorithms, 'iam_algorithms')} is missing`],
+    ...existsSync(join(mining, 'iam')) ? [] : [`${join(mining, 'iam')} is missing`],
+  ]
+  if (problems.length > 0) {
+    throw new Error(`package:iam: the Windows installer ships the IAM algorithm bridge, but ${problems.join('; ')}; `
+      + 'build the IAX native target or set IAM_PYTHON_RUNTIME_DIR / IAM_PYTHON_PACKAGE_DIR / IAM_MINING_PYTHON_DIR')
+  }
+}
+
 const forwarded = process.argv.slice(2).filter(argument => argument !== '--')
 const signed = forwarded.includes('--signed')
 const argumentsToPackage = forwarded.filter(argument => argument !== '--signed')
@@ -81,7 +108,10 @@ if (process.platform === 'win32') {
 pnpm(['run', 'check:iam-views'], env)
 const explicitTarget = forwarded.find(argument => TARGET_NAMES.has(argument))
 const target = explicitTarget ?? (process.platform === 'win32' ? 'win-x64' : process.arch === 'arm64' ? 'mac-arm64' : 'mac-x64')
-if (target === 'win-x64') requireNativeViewers()
+if (target === 'win-x64') {
+  requireNativeViewers()
+  requireIamAlgorithms()
+}
 pnpm(['run', 'package:desktop', '--', ...argumentsToPackage], env)
 
 const artifacts = installerFiles(target)

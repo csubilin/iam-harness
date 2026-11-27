@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { existsSync, mkdtempSync, rmdirSync, unlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { dirname, join, resolve } from 'node:path'
+import { delimiter, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -72,15 +72,24 @@ export interface BridgeOutcome {
  *
  * `IAX_PYTHON` and the bundle row win over the name, for the reason Import's
  * tool paths do: a deployment with a specific interpreter should be able to name
- * it once rather than edit this file.
+ * it once rather than edit this file.  The Desktop package names its own copy
+ * through `IAM_BRIDGE_PYTHON`, so a packaged application never depends on a
+ * Python on PATH.
  */
 export function pythonExecutable(options: BridgeOptions): string {
-  return options.python || process.env.IAX_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
+  return options.python || process.env.IAM_BRIDGE_PYTHON || process.env.IAX_PYTHON
+    || (process.platform === 'win32' ? 'python' : 'python3')
 }
 
-/** The bridge script, which must exist or nothing in this plugin can work. */
+/**
+ * The bridge script, which must exist or nothing in this plugin can work.
+ *
+ * `IAM_BRIDGE_SCRIPT` names the copy a packaged Desktop carries outside
+ * `app.asar`: this script is run by Python, which cannot read an asar archive,
+ * so a bridge inside the archive is not a script Python can open.
+ */
 export function bridgeScript(): string {
-  const script = join(packageRoot, 'python', 'bridge.py')
+  const script = process.env.IAM_BRIDGE_SCRIPT ?? join(packageRoot, 'python', 'bridge.py')
   if (!existsSync(script)) {
     throw new BridgeUnavailableError(
       `the AlgorithmBridge Python half is missing at ${script}; the package is incomplete`,
@@ -132,6 +141,15 @@ export function callBridge(
   const script = bridgeScript()
   const extra = options.pythonPath ?? []
   const environment = { ...process.env }
+  // The nanobind extension imports the IAX engine DLLs; the Desktop package
+  // keeps them beside its native viewers and names that directory here. The
+  // key is looked up case-insensitively because a copied env object is a plain
+  // object, where `environment.PATH` would miss PowerShell's `Path`.
+  const nativeBin = process.env.IAM_NATIVE_DIR
+  if (nativeBin !== undefined && nativeBin !== '') {
+    const key = Object.keys(environment).find(name => name.toLowerCase() === 'path') ?? 'PATH'
+    environment[key] = [nativeBin, environment[key]].filter(Boolean).join(delimiter)
+  }
   const cancelDirectory = mkdtempSync(join(tmpdir(), 'iam-bridge-'))
   const cancelFile = join(cancelDirectory, 'cancel')
   environment.IAX_CANCEL_FILE = cancelFile
