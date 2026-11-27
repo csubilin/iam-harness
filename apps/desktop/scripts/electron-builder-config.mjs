@@ -164,7 +164,22 @@ export function createElectronBuilderConfig(
     ],
     asarUnpack: unpack,
     extraResources: [
-      { from: buildPaths.runtime, to: 'runtime' },
+      // The bundled tools keep only what runs: pip/ensurepip install nothing at
+      // runtime (the workspace-dependencies skill exposes the Python as-is), and
+      // idlelib plus the CPython headers are development pieces.
+      { from: buildPaths.runtime, to: 'runtime', filter: [
+        '**/*',
+        '!primary-runtime/dependencies/python/Lib/site-packages/pip',
+        '!primary-runtime/dependencies/python/Lib/site-packages/pip/**',
+        '!primary-runtime/dependencies/python/Lib/site-packages/pip-*.dist-info',
+        '!primary-runtime/dependencies/python/Lib/site-packages/pip-*.dist-info/**',
+        '!primary-runtime/dependencies/python/Lib/ensurepip',
+        '!primary-runtime/dependencies/python/Lib/ensurepip/**',
+        '!primary-runtime/dependencies/python/Lib/idlelib',
+        '!primary-runtime/dependencies/python/Lib/idlelib/**',
+        '!primary-runtime/dependencies/python/include',
+        '!primary-runtime/dependencies/python/include/**',
+      ] },
       { from: fileURLToPath(new URL('../resources/icon-windows.png', import.meta.url)), to: 'icon.png' },
       // Windows tray bitmaps; macOS keeps the Dock and ships no menu bar icon.
       ...(packagesWindows ? [{ from: fileURLToPath(new URL('../resources/tray-windows.ico', import.meta.url)), to: 'tray.ico' }] : []),
