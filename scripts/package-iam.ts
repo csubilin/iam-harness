@@ -46,8 +46,8 @@ function requireNativeViewers(): void {
   const iax = process.env.IAX_ROOT ?? join(ROOT, '..', 'IAX')
   const native = process.env.IAX_NATIVE_DIR ?? join(iax, 'build', 'exe', 'win-native')
   const required = [
-    join(native, 'IamNativeDrawingView.exe'),
-    join(native, 'IamNativeMiningView.exe'),
+    join(native, 'IamDrawing.exe'),
+    join(native, 'IamMining.exe'),
     process.env.IAX_FONTS ?? join(iax, 'Fonts'),
     process.env.IAX_RESOURCE ?? join(iax, 'resource'),
   ]

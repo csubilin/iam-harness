@@ -272,7 +272,7 @@ The tree chooses its output ROOT by compiler family: GCC and Clang write
 `build/bin/<platform>`, and a Windows build — `WINDOWS_GCC`, which build.ps1
 sets — writes `build/exe/<platform>`. The native target's platform token is
 `linux-native` on one and `win-native` on the other, and Windows names the
-programs `IamNative*View.exe`. So the same setting is:
+programs `IamDrawing.exe` / `IamMining.exe`. So the same setting is:
 
 | | `nativeBinDir` |
 |---|---|
@@ -679,7 +679,7 @@ Working and verified
   reaches nothing, and neither does a spent one);
 - **the real native editor reports through the real wire.** Measured 2026-10-07
   under Xvfb + lavapipe, listening exactly as `host/native.ts` listens and
-  spawning `IamNativeDrawingView --editable <a 5,725-entity .iamp>` with
+  spawning `IamDrawing --editable <a 5,725-entity .iamp>` with
   `--iam-ipc`/`--iam-token`: the process connected and greeted, and then, driven
   with synthesized input, sent
 
@@ -795,7 +795,7 @@ Verified 2026-10-07 (this change)
 - `IamBridgeShutdownTest` passes in 0 ms with the fix, measured both ways on
   this machine;
 - the affected targets build: `IamDrawingView`, `IamMiningView` (wasm),
-  `IamNativeDrawingView`, `IamNativeMiningView`, and both test programs.
+  `IamDrawing`, `IamMining`, and both test programs.
 
 Not yet verified by hand
 

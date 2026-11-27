@@ -173,7 +173,7 @@ export function createElectronBuilderConfig(
       // IAM_FONTS_DIR. The filter keeps the test programs in that directory out.
       ...(packagesWindows ? [
         { from: iaxNative, to: 'iam-native/win-x64',
-          filter: ['*.dll', 'IamNativeDrawingView.exe', 'IamNativeMiningView.exe'] },
+          filter: ['*.dll', 'IamDrawing.exe', 'IamMining.exe'] },
         { from: env.IAX_RESOURCE ?? join(iaxRoot, 'resource'), to: 'iam-native/win-x64/resource',
           filter: ['**/*', '!fonts', '!fonts/**'] },
         { from: env.IAX_FONTS ?? join(iaxRoot, 'Fonts'), to: 'iam-native/fonts' },

@@ -211,7 +211,7 @@ describe('MiningRepository host half', () => {
       const { value } = await call(tools, { project: 'test2.iamh', elements: [OREBODY] })
       assert.equal(value.ok, false)
       assert.match(String(value.refused), /noExecutable/)
-      assert.match(String(value.refused), /IamNativeMiningView/)
+      assert.match(String(value.refused), /IamMining/)
     })
 
   test('the session\'s workspace beats the configured one, and a relative project resolves against it',

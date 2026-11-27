@@ -36,7 +36,7 @@
 #
 #     nativeBinDir: /opt/iax/bin/win-native
 #     fontsDir: /opt/iax/Fonts
-#                                         # Where IamNativeMiningView and the SHX
+#                                         # Where IamMining and the SHX
 #                                         # fonts are. Needed ONLY for a `.iamh`,
 #                                         # which the browser view cannot draw: on
 #                                         # the desktop carrier the tool starts the

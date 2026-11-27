@@ -53,7 +53,7 @@ export const zh = {
   refusalDesktopOnly: '更强大的可视化及编辑功能请安装桌面端。',
   refusalNoBinDir:
     '没有配置原生编辑器目录。请给插件设置 nativeBinDir，或设置环境变量 IAM_NATIVE_DIR'
-    + '指向包含 IamNative*View 的目录。',
+    + '指向包含 IamDrawing / IamMining 的目录。',
   refusalNoFontsDir: '没有配置字体目录。请给插件设置 fontsDir，或设置环境变量 IAM_FONTS_DIR（SHX 字体所在目录）。',
   refusalNoExecutable: '没有找到原生编辑器可执行文件：{detail}',
   refusalNoEventPort: '本机事件端口无法打开。',
@@ -162,7 +162,7 @@ export const en = {
   refusalDesktopOnly: 'Richer visualisation and editing are in the desktop app.',
   refusalNoBinDir:
     'No native editor directory is configured. Set the plugin\'s nativeBinDir, or IAM_NATIVE_DIR, '
-    + 'to the directory holding IamNative*View.',
+    + 'to the directory holding IamDrawing / IamMining.',
   refusalNoFontsDir:
     'No font directory is configured. Set the plugin\'s fontsDir, or IAM_FONTS_DIR, to the '
     + 'directory holding the SHX fonts.',

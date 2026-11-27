@@ -3,7 +3,7 @@ import { existsSync, realpathSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 /** The Mining editor, which is the one that can read both containers. */
-const EXECUTABLE = process.platform === 'win32' ? 'IamNativeMiningView.exe' : 'IamNativeMiningView'
+const EXECUTABLE = process.platform === 'win32' ? 'IamMining.exe' : 'IamMining'
 
 /** What the bundle row, or the environment, says about where things are. */
 export interface NativeOptions {

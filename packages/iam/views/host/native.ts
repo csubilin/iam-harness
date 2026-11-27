@@ -27,8 +27,8 @@ const GREETING_TIMEOUT_MS = 10_000
 
 /** The executable per domain, as `run.sh` names them. */
 const EXECUTABLES = {
-  drawing: 'IamNativeDrawingView',
-  mining: 'IamNativeMiningView',
+  drawing: 'IamDrawing',
+  mining: 'IamMining',
 } as const
 
 export type NativeDomain = keyof typeof EXECUTABLES
