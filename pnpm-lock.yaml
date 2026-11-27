@@ -2964,6 +2964,9 @@ importers:
       '@deepseek-ai/iam-algorithm-bridge':
         specifier: workspace:*
         version: link:../../iam/algorithm-bridge
+      '@deepseek-ai/iam-app-publisher':
+        specifier: workspace:*
+        version: link:../../iam/app-publisher
       '@deepseek-ai/iam-brand':
         specifier: workspace:*
         version: link:../../iam/brand
@@ -14657,6 +14660,8 @@ importers:
         version: 4.0.1
 
   packages/iam/algorithm-bridge: {}
+
+  packages/iam/app-publisher: {}
 
   packages/iam/brand: {}
 

@@ -3,13 +3,15 @@
 
 # The platform as IAM Harness plugins
 
-Six Harness plugin bundles. Two put the platform's own Drawing 2D and Mining 3D
+Eight Harness plugin bundles. Two put the platform's own Drawing 2D and Mining 3D
 views inside the Harness document preview, in both Browse and Edit mode, and
 report what the user does there to the session's agent; one puts the two
 out-of-process importers in front of an agent; one puts the algorithm library's
-retrieval and execution surface in front of it; one renders a document to a PNG
-with the platform's own off-screen renderer; the last puts the platform's own
-mark in the sidebar.
+retrieval and execution surface in front of it; one is the workshop that
+discovers, validates and freezes a successful run into a capability; one
+publishes a selection of frozen capabilities as a portable desktop app; one
+renders a document to a PNG with the platform's own off-screen renderer; the
+last puts the platform's own mark in the sidebar.
 
 Each is a **bundle package**: a `package.json` declaring `dsh.bundle.patch` and a
 `cordis.patch.yml` layer. The two with a browser half also declare `dsh.client`
@@ -21,6 +23,8 @@ and add it as `lib/client.js`.
 | `Import` | **tool** | `import_mine`, `import_drawing`, `describe_drawing` |
 | `Render` | **tool** | `iam_render_document` |
 | `AlgorithmBridge` | **tool** | `iam_algorithm_search`, `iam_algorithm_describe`, `iam_mine_describe`, `iam_workflow_list`, `iam_workflow_run`, `iam_program_run` |
+| `CapabilityForge` | **tool** | `capability_candidates`, `capability_scaffold`, `capability_validate`, `capability_freeze`, `capability_audit` |
+| `AppPublisher` | **tool** | `iam_app_publish` |
 | `MiningRepository` | **tool** | `iam_mining_show`, and the write door: `iam_mine_edit`, `iam_mine_verb`, `iam_mine_document`, `iam_mine_apply` |
 | `Brand` | **chrome** | nothing it is asked for — it occupies the sidebar's brand slots |
 

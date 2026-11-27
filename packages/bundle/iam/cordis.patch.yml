@@ -60,6 +60,14 @@
     - id: iam-capability-forge
       name: '@deepseek-ai/iam-capability-forge'
 
+    # The publisher beside the forge: a capability is a directory of data, and a
+    # published desktop app is a folder around the base executable plus a
+    # selection of those directories. Publishing is a file copy, not a build, so
+    # the second app costs one tool call and no install. Host only, like the
+    # forge; a headless profile can publish as readily as the desktop.
+    - id: iam-app-publisher
+      name: '@deepseek-ai/iam-app-publisher'
+
     # Making something VISIBLE. A mine can be 158 MB as a payload and the preview
     # copies a document whole before the engine sees it, so "显示矿体" is answered
     # by opening the project and telling the view what to draw -- the panel draws

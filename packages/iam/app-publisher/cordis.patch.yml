@@ -1,0 +1,23 @@
+# The bundle layer this package contributes to a profile.
+#
+# A row names the package (not a relative file) so that Node resolution finds
+# the installed copy; the entry resolves the package's `exports["."]`.
+#
+# No `dsh.client` anywhere in this package: publishing is a host-side file copy,
+# so the bundle loads in the headless, sdk and acp profiles that mount no page.
+#
+# The publisher copies from the same trees the packaged Desktop names in its
+# environment. The `config:` row is optional and wins over the environment:
+#
+#   config:
+#     nativeDir: /path/to/IAX/build/exe/win-native   # else $IAM_NATIVE_DIR, else the sibling IAX build
+#     fonts: /path/to/IAX/Fonts                      # else $IAM_FONTS_DIR / $ACAD
+#     resource: /path/to/IAX/resource                # else $IAX_RESOURCE
+#     bridge: /path/to/bridge.py                     # else $IAM_BRIDGE_SCRIPT
+#     algorithms: /path/to/IAM/Host/Python           # else $IAM_PYTHON_PACKAGE_DIR
+#     iam: /path/to/Mining/Host/python               # else $IAM_MINING_PYTHON_DIR
+#     python: /path/to/portable-python               # else $IAX_APP_PYTHON_DIR / $IAM_BRIDGE_PYTHON
+#     workspace: /path/to/workspace                  # last resort; the session asks first
+- insert:
+    - id: iam-app-publisher
+      name: '@deepseek-ai/iam-app-publisher'

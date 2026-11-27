@@ -21,7 +21,7 @@ export const VIEW_PACKAGES = ['views']
  * cannot load one. `Import` is deliberately absent: it needs a build's native
  * executables, and the suite does not have them.
  */
-export const TOOL_PACKAGES = ['algorithm-bridge', 'capability-forge', 'mining-repository', 'render']
+export const TOOL_PACKAGES = ['algorithm-bridge', 'capability-forge', 'app-publisher', 'mining-repository', 'render']
 
 /**
  * Locate the TypeScript compiler, the same way `scripts/build.mjs` does.

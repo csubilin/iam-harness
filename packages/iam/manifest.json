@@ -163,6 +163,29 @@
       "note": "The workshop, not a runner: capability_candidates finds recent successful runs worth proposing for freezing, capability_scaffold generates a package from templates, capability_validate checks the contract one finding per rule, capability_freeze calls the AlgorithmBridge's own freeze and records a lock, and capability_audit compares programs, locks, artifacts and figures. Frozen capabilities carry selectable step ids: a later iam_workflow_run can pass steps/resume to run only the steps it needs, and a missing prerequisite is refused rather than silently re-run. The plugin deliberately has no way to execute a capability; execution is iam_workflow_run. A capability is a directory of data, not an npm package, so the second capability costs no install."
     },
     {
+      "name": "@deepseek-ai/iam-app-publisher",
+      "directory": "app-publisher",
+      "kind": "tool",
+      "provenance": "builtin",
+      "status": "active",
+      "answersFor": [
+        "iam_app_publish"
+      ],
+      "requires": {
+        "browser": false,
+        "python": true,
+        "nativeBinDir": true
+      },
+      "profiles": [
+        "web",
+        "desktop",
+        "headless",
+        "sdk",
+        "acp"
+      ],
+      "note": "The distribution door beside the forge. iam_app_publish copies one base executable (IamMining by default, IamDrawing on request), its DLLs, the selected frozen workflows, bridge.py, the vendored bindings, a portable Python runtime and an iam-app.json ribbon descriptor into one folder: publishing is a file copy, not a build, and the second app is the same call with another selection. Only active workflows ship; a draft or a dialog the manifest cannot drive is a refusal. The published app runs its workflows through bridge.py directly, so it needs no Harness installation and no model endpoint. `out` is confined to the session workspace, and the workspace root, .git, .iax and .agents are never replaceable. Paths come from the same IAM_* environment the packaged Desktop sets, so an installed app publishes without extra configuration."
+    },
+    {
       "name": "@deepseek-ai/iam-mining-repository",
       "directory": "mining-repository",
       "kind": "tool",

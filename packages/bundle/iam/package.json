@@ -19,6 +19,7 @@
     "@deepseek-ai/iam-brand": "workspace:*",
     "@deepseek-ai/iam-algorithm-bridge": "workspace:*",
     "@deepseek-ai/iam-capability-forge": "workspace:*",
+    "@deepseek-ai/iam-app-publisher": "workspace:*",
     "@deepseek-ai/iam-mining-repository": "workspace:*"
   },
   "dsh": {

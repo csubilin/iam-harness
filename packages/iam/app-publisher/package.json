@@ -1,0 +1,27 @@
+{
+  "name": "@deepseek-ai/iam-app-publisher",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/tools.js",
+    "lib/publish.js",
+    "cordis.patch.yml"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs host",
+    "prepack": "node scripts/build.mjs host",
+    "postpack": "node scripts/build.mjs clean"
+  }
+}

@@ -287,6 +287,10 @@
     "apps/desktop-host/tests/**/*.ts",
     "benchmarks/**/*.ts",
     "packages/*/*/tests/**/*.ts",
+    // The publisher is a Harness capability that `scripts/publish-app.ts` also
+    // drives; packages/iam builds through its own transpile, so this is the one
+    // source file a repo-wide program consumes and therefore has to check.
+    "packages/iam/app-publisher/host/publish.ts",
     "packages/experimental/cua-macos/native/generate-protocol.ts",
     "packages/experimental/cua-windows/native/generate-protocol.ts",
     "packages/experimental/claude-code-mods/examples/*/index.ts",
