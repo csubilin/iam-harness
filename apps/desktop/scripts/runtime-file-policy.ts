@@ -19,11 +19,17 @@ export function desktopRuntimeFileExclusion(
   const file = parts.at(-1)!
   if (/\.(?:[cm]?[jt]s|css)\.map$/u.test(file)) return 'source map'
   if (/\.d\.[cm]?ts$/u.test(file)) return 'TypeScript declaration'
+  // Runtime entry points live in lib; the .ts files are the published source.
+  if (/\.(?:ts|tsx|mts|cts)$/u.test(file)) return 'TypeScript source'
   if (/\.tsbuildinfo$/u.test(file)) return 'TypeScript build cache'
   const packageParts = parts.slice(parts.lastIndexOf('node_modules') + 1)
   const nameParts = packageParts[0]?.startsWith('@') ? 2 : 1
   const name = packageParts.slice(0, nameParts).join('/')
   const entry = packageParts.slice(nameParts).join('/')
+  // The plugin manager shows an installed bundle's README as its long
+  // description, so README files stay; the shipped docs and tests trees do not.
+  if (/^(?:docs|tests|__tests__)\//u.test(entry)) return 'package documentation or tests'
+  if (/^(?:changelog|history|contributing|security)(?:\.[^/]*)?\.md$/iu.test(entry)) return 'package changelog'
   if (name.startsWith('@deepseek-ai/libreoffice-kit-')) {
     if (name !== `@deepseek-ai/libreoffice-kit-${officeEngine}`) return 'LibreOffice other platform'
   }

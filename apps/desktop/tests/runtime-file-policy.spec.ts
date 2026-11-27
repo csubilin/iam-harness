@@ -32,12 +32,19 @@ it('omits development artifacts while preserving executable modules, assets and 
     '@deepseek-ai/libreoffice-kit-wasm/assets/soffice.data',
     '@deepseek-ai/libreoffice-kit-darwin-arm64/bin/dsoffice',
     '.modules.yaml', '.pnpm-workspace-state-v1.json', '.bin/tool', '.pnpm/cache',
+    'example/source.ts', 'example/src/entry.ts', 'example/tests/runtime.ts',
+    'example/docs/architecture.md', 'example/CHANGELOG.md', 'example/CHANGELOG.zh.md',
+    '@deepseek-ai/dsh/src/bin.ts', '@deepseek-ai/dsh/docs/architecture.md',
+    '@deepseek-ai/dsh/docs/upgrade-guide/v0.2.0/example/guide.md',
+    '@deepseek-ai/dsh-session/src/index.ts',
+    '@deepseek-ai/dsh-client-ui-chat/src/client/Page.tsx',
   ]
   const retained = [
     'example/index.js', 'example/index.cjs', 'example/index.mjs', 'example/worker.js',
-    'example/source.ts', 'example/src/entry.ts', 'example/test/runtime-fixture.json',
+    'example/test/runtime-fixture.json',
     'example/locale.json', 'example/data.map', 'example/module.wasm',
     'example/package.json', 'example/LICENSE', 'example/NOTICE', 'example/README.md',
+    'example/README.zh.md',
     'example/native.lib', 'example/native.obj', 'example/symbols.pdb',
     'fs-ext/build/Release/fs_ext.node', 'fs-ext/build/Release/runtime.dll',
     'node-pty/prebuilds/win32-x64/conpty.node',
@@ -55,10 +62,7 @@ it('omits development artifacts while preserving executable modules, assets and 
     '@deepseek-ai/libreoffice-kit-win32-x64/licenses/MPL-2.0.txt',
     '@deepseek-ai/dsh/lib/index.js', '@deepseek-ai/dsh/lib/bin.js',
     '@deepseek-ai/dsh-session/lib/index.js',
-    '@deepseek-ai/dsh/src/bin.ts', '@deepseek-ai/dsh/docs/architecture.md',
-    '@deepseek-ai/dsh/docs/upgrade-guide/v0.2.0/example/guide.md',
-    '@deepseek-ai/dsh-session/src/index.ts',
-    '@deepseek-ai/dsh-client-ui-chat/src/client/Page.tsx',
+    '@deepseek-ai/dsh/README.md',
   ]
   try {
     const runtime = runtimeFixture(source)
@@ -88,6 +92,14 @@ it('applies package-specific rules inside scoped and nested dependency container
   expect(desktopRuntimeFileExclusion('outer\\node_modules\\node-pty\\prebuilds\\win32-arm64\\conpty.node', windows, 'win32-x64')).toBeDefined()
   expect(desktopRuntimeFileExclusion('outer/node_modules/unrelated/test/data.html', windows, 'win32-x64')).toBeUndefined()
   expect(desktopRuntimeFileExclusion('outer/fs-ext/build/Release/fs_ext.lib', windows, 'win32-x64')).toBeUndefined()
+  // Published source, shipped docs and tests go; the plugin manager's README and
+  // singular test/ fixture trees stay.
+  expect(desktopRuntimeFileExclusion('@deepseek-ai/dsh/src/index.ts', windows, 'win32-x64')).toBeDefined()
+  expect(desktopRuntimeFileExclusion('@deepseek-ai/dsh/docs/guide.md', windows, 'win32-x64')).toBeDefined()
+  expect(desktopRuntimeFileExclusion('@deepseek-ai/dsh/tests/unit.spec.js', windows, 'win32-x64')).toBeDefined()
+  expect(desktopRuntimeFileExclusion('@deepseek-ai/dsh/CHANGELOG.md', windows, 'win32-x64')).toBeDefined()
+  expect(desktopRuntimeFileExclusion('@deepseek-ai/dsh/README.md', windows, 'win32-x64')).toBeUndefined()
+  expect(desktopRuntimeFileExclusion('@deepseek-ai/dsh/test/fixture.json', windows, 'win32-x64')).toBeUndefined()
 })
 
 it('retains native prebuilds for the selected macOS architecture', () => {

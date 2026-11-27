@@ -365,9 +365,9 @@ export function publish(options: PublishOptions): PublishResult {
   const config = buildAppConfig(sources, {
     base: options.base,
     python,
-    title: options.title,
-    tabLabel: options.tabLabel,
-    groupLabel: options.groupLabel,
+    ...(options.title === undefined ? {} : { title: options.title }),
+    ...(options.tabLabel === undefined ? {} : { tabLabel: options.tabLabel }),
+    ...(options.groupLabel === undefined ? {} : { groupLabel: options.groupLabel }),
   })
   const configPath = join(output, 'iam-app.json')
   writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`)
@@ -388,7 +388,7 @@ export function publish(options: PublishOptions): PublishResult {
   writeFileSync(join(output, 'publish.json'), `${JSON.stringify(receipt, null, 2)}\n`)
 
   const zipPath = options.zip === true ? zipDirectory(output) : undefined
-  return { outputDirectory: output, configPath, workflows: sources, zipPath }
+  return { outputDirectory: output, configPath, workflows: sources, ...(zipPath === undefined ? {} : { zipPath }) }
 }
 
 interface ParsedArguments {
@@ -479,6 +479,9 @@ function main(argv: readonly string[]): void {
   const platform = platforms[process.platform]
   if (platform === undefined) throw new Error(`unsupported host platform: ${process.platform}`)
   const workflows = values.get('workflows')
+  const title = values.get('title')
+  const tabLabel = values.get('tab')
+  const groupLabel = values.get('group')
   const result = publish({
     base,
     nativeDirectory: values.get('native-dir') ?? process.env.IAX_NATIVE_DIR
@@ -493,10 +496,10 @@ function main(argv: readonly string[]): void {
     iamRoot: values.get('iam') ?? join(iax, 'Mining', 'Host', 'python'),
     fontsDirectory: values.get('fonts') ?? process.env.IAX_FONTS ?? join(iax, 'Fonts'),
     resourceDirectory: values.get('resource') ?? process.env.IAX_RESOURCE ?? join(iax, 'resource'),
-    workflowNames: workflows === undefined ? undefined : workflows.split(',').map(name => name.trim()).filter(Boolean),
-    title: values.get('title'),
-    tabLabel: values.get('tab'),
-    groupLabel: values.get('group'),
+    ...(workflows === undefined ? {} : { workflowNames: workflows.split(',').map(name => name.trim()).filter(Boolean) }),
+    ...(title === undefined ? {} : { title }),
+    ...(tabLabel === undefined ? {} : { tabLabel }),
+    ...(groupLabel === undefined ? {} : { groupLabel }),
     zip: flags.has('zip'),
     force: flags.has('force'),
   })
