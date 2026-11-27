@@ -5,6 +5,7 @@ export interface DesktopElectronBuilderConfig {
   readonly appId: string
   readonly copyright: string
   readonly artifactName: string
+  readonly electronLanguages: readonly string[]
   readonly protocols: readonly [{ readonly name: 'IAM Harness'; readonly schemes: readonly ['dsh'] }]
   readonly directories: {
     readonly output: string

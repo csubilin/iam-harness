@@ -123,6 +123,9 @@ export function createElectronBuilderConfig(
       ...packaged === undefined ? {} : { dshBuildCommit: packaged.commit, dshBuildDirty: packaged.dirty },
     },
     productName: 'IAM Harness',
+    // The UI resolves these dictionaries only (locale.ts); Electron's other
+    // 45 locale packs are 40 MiB nobody can select.
+    electronLanguages: ['de', 'en-US', 'es', 'fr', 'ja', 'pt-BR', 'pt-PT', 'ru', 'zh-CN'],
     // The default copyright uses author.name; this line names the product instead.
     copyright: `Copyright © ${new Date().getFullYear()} \${productName}`,
     // Unsigned builds carry their own suffix so a shared file can never pass for a release artifact.

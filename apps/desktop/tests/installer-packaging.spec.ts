@@ -56,6 +56,8 @@ describe('installer preparation preserves application dependencies', () => {
       if (platform === 'win32') {
         expect(expandMacro(config.nsis.uninstallDisplayName, null, appInfo, {}, false)).toBe('IAM Harness')
         expect(config.nsis.installerLanguages).toEqual(readInstallerLocales().map(locale => locale.id))
+        // One Electron pack per UI dictionary in locale.ts; the rest are dead weight.
+        expect(config.electronLanguages).toEqual(['de', 'en-US', 'es', 'fr', 'ja', 'pt-BR', 'pt-PT', 'ru', 'zh-CN'])
         // The custom welcome page owns directory selection; enabling NSIS's page
         // collides with its page callbacks.
         expect(config.nsis.allowToChangeInstallationDirectory).toBe(false)
