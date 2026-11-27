@@ -6,12 +6,15 @@
   "main": "lib/index.js",
   "exports": {
     ".": "./lib/index.js",
+    "./cli": "./lib/cli.js",
+    "./publish": "./lib/publish.js",
     "./package.json": "./package.json"
   },
   "files": [
     "lib/index.js",
     "lib/tools.js",
     "lib/publish.js",
+    "lib/cli.js",
     "cordis.patch.yml"
   ],
   "dsh": {

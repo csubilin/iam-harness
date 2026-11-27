@@ -52,14 +52,17 @@
 打包后的 Desktop 已经在 `main.ts` 里设好这些变量，所以安装版里发布不需要额外配置。
 `config:` 优先于环境变量；解释器必须是可移植目录，裸 `python` 名字会被拒绝。
 
-## 命令行等价物
+## 命令行
 
 ```sh
-pnpm run package:app -- --base mining --workspace <dir> --out <dir> [--workflows a,b] [--zip]
+dsh app publish --base mining --workspace <dir> --out <dir> [--workflows a,b] [--zip]
 ```
 
-`scripts/publish-app.ts` 是同一个 `publish()` 的命令行入口，两者共用
-`host/publish.ts`，不存在第二份实现。
+发布的对象是流程作者在会话里固化到 `<workspace>/.iax/workflows` 的能力：先由
+`capability_freeze`（或 `iam_workflow_freeze`）固化，再由这条命令或工具打包。
+`dsh` 从随安装的 IAM bundle（`@deepseek-ai/iam-mining-workspace`）解析发布器，
+所以公共 `dsh` 包不新增私有依赖；安装里没有这个 bundle 时，命令明确报错而不是装不上。
+`dsh app publish` 与工具共用 `host/publish.ts`，不存在第二份实现。
 
 ## 测试
 
@@ -67,5 +70,5 @@ pnpm run package:app -- --base mining --workspace <dir> --out <dir> [--workflows
 node --test packages/iam/tests/app-publisher.test.mjs
 ```
 
-测试把工具挂在假 `ctx` 上并调用：拒绝 draft、Ribbon 顺序、输出布局、`force`
-与越界拒绝都在这里；`scripts/publish-app.spec.ts` 覆盖复制核心本身。
+测试把工具挂在假 `ctx` 上并调用：拒绝 draft 与画不出对话框的 manifest、Ribbon
+顺序与分组、输出布局、`force`、越界拒绝和 `bin/` 运行时布局都在这里。

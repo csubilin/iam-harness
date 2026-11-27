@@ -11,7 +11,8 @@
  * and `dsh --profile web -h` prints the web app's help, not this one's.
  *
  * `dsh <name>` abbreviates `dsh --profile <name>`; `plugin` manages a profile's
- * plugin dependencies by forwarding to pnpm.
+ * plugin dependencies by forwarding to pnpm, and `app publish` hands its
+ * arguments to the installed IAM app publisher.
  * @module @deepseek-ai/dsh/args
  */
 
@@ -57,8 +58,16 @@ interface PluginInvocation {
   args: string[]
 }
 
+/** Publish a desktop app from a workspace's frozen capabilities. */
+interface AppPublishInvocation {
+  mode: 'app-publish'
+  /** The publisher's arguments, verbatim; it owns its own flags and help. */
+  args: string[]
+}
+
 /** The resolved `dsh` invocation. Help, version, and errors exit inside {@link parseDshArgs}. */
-export type DshInvocation = ProfileInvocation | DumpConfigInvocation | DumpConfigSchemaInvocation | PluginInvocation
+export type DshInvocation = ProfileInvocation | DumpConfigInvocation | DumpConfigSchemaInvocation
+  | PluginInvocation | AppPublishInvocation
 
 /** Launcher flags for profile boot and configuration dumps. */
 interface BootOptions {
@@ -97,6 +106,7 @@ Examples:
   dsh tui --resume <session>                arguments after the launcher flags reach the app
   dsh web --help                            the web app's own flags and help
   dsh plugin --profile tui add <package>    install a plugin into the tui profile
+  dsh app publish --out dist/app            publish a portable desktop app from a workspace
 `
 
 /**
@@ -152,7 +162,7 @@ export function parseDshArgs(argv: readonly string[], version: string, manageDes
   program
     .name('dsh')
     .version(version, '-V, --version', 'output the version number')
-    .usage('[--profile] <name> [options] [app-args...]\n       dsh plugin --profile <name> <pnpm-args...>')
+    .usage('[--profile] <name> [options] [app-args...]\n       dsh plugin --profile <name> <pnpm-args...>\n       dsh app publish [publisher-args...]')
     .description('dsh: boot a DeepSeek Harness profile — an ordered stack of plugin-bundle patch layers under your own overrides.')
     .addHelpText('after', HELP_EXAMPLES)
     .exitOverride()
@@ -202,8 +212,27 @@ export function parseDshArgs(argv: readonly string[], version: string, manageDes
       })
   }
 
+  if (first === 'app') {
+    const app = program.command('app').description('publish a standalone desktop app from frozen capabilities')
+    // Commander copies the launcher's disabled help option into subcommands.
+    app.helpOption('-h, --help', 'show this help')
+    // `dsh app publish --help` is the publisher's own help, so an implicit
+    // `help` command would be a second, disagreeing answer.
+    app.helpCommand(false)
+    const publisher = app.command('publish')
+    publisher
+      // The publisher owns every flag, including its -h, so nothing is parsed here.
+      .helpOption(false)
+      .allowUnknownOption()
+      .passThroughOptions()
+      .argument('[args...]', 'publisher arguments (see: dsh app publish --help)')
+      .action((args: string[]) => {
+        resolved = { mode: 'app-publish', args }
+      })
+  }
+
   try {
-    const expanded = first !== undefined && !first.startsWith('-') && first !== 'plugin'
+    const expanded = first !== undefined && !first.startsWith('-') && first !== 'plugin' && first !== 'app'
       ? ['--profile', ...argv]
       : argv
     program.parse(expanded, { from: 'user' })

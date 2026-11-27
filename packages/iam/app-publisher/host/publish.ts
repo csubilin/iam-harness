@@ -1,5 +1,5 @@
 /**
- * Publishing core behind the `iam_app_publish` tool and `pnpm run package:app`.
+ * Publishing core behind the `iam_app_publish` tool and `dsh app publish`.
  *
  * A published app is a portable folder around one of the platform's base
  * executables: the frozen workflows are data, so publishing the second app is

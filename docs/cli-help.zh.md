@@ -13,6 +13,8 @@
 
 - [`dsh`](#dsh)
 - [`dsh plugin`](#dsh-plugin)
+- [`dsh app`](#dsh-app)
+- [`dsh app publish`](#dsh-app-publish)
 - [`dsh acp`](#dsh-acp)
 - [`dsh headless`](#dsh-headless)
 - [`dsh sdk`](#dsh-sdk)
@@ -27,6 +29,7 @@
 ```text
 Usage: dsh [--profile] <name> [options] [app-args...]
        dsh plugin --profile <name> <pnpm-args...>
+       dsh app publish [publisher-args...]
 
 dsh: boot a DeepSeek Harness profile — an ordered stack of plugin-bundle patch
 layers under your own overrides.
@@ -57,6 +60,7 @@ Examples:
   dsh tui --resume <session>                arguments after the launcher flags reach the app
   dsh web --help                            the web app's own flags and help
   dsh plugin --profile tui add <package>    install a plugin into the tui profile
+  dsh app publish --out dist/app            publish a portable desktop app from a workspace
 
 ```
 
@@ -79,6 +83,69 @@ Options:
   --profile <name>  the profile whose plugins to manage (initialized on first
                     use)
   -h, --help        show this help
+```
+
+<a id="dsh-app"></a>
+## `dsh app`
+
+调用方式: `dsh app --help`
+
+```text
+Usage: dsh app [options] [command]
+
+publish a standalone desktop app from frozen capabilities
+
+Options:
+  -h, --help         show this help
+
+Commands:
+  publish [args...]
+```
+
+<a id="dsh-app-publish"></a>
+## `dsh app publish`
+
+调用方式: `dsh app publish --help`
+
+```text
+Publish a standalone native app: the base view executable plus selected frozen workflows.
+
+  dsh app publish --base mining --workspace <dir> --out <dir> [options]
+
+The same publisher is the Harness capability `iam_app_publish`.
+
+Required
+  --base <drawing|mining>   The native executable to publish.
+  --workspace <dir>         The workspace holding .iax/workflows/.
+  --out <dir>               The output folder (created, or replaced with --force).
+
+Optional
+  --python <dir>            A portable Python install to bundle (python.exe, bin/python.exe or bin/python3).
+                            Default IAX_APP_PYTHON_DIR or IAM_BRIDGE_PYTHON.
+  --workflows <a,b>         Names to publish, in ribbon order. All active workflows otherwise.
+  --native-dir <dir>        Native build output. Default IAM_NATIVE_DIR or ../IAX/build/exe/<platform>.
+  --bridge <file>           Default IAM_BRIDGE_SCRIPT or packages/iam/algorithm-bridge/python/bridge.py.
+  --algorithms <dir>        Directory holding iam_algorithms/. Default IAM_PYTHON_PACKAGE_DIR,
+                            the bridge's sibling vendor/, or the IAX build.
+  --iam <dir>               Directory holding iam/. Default IAM_MINING_PYTHON_DIR, the bridge's
+                            sibling vendor/, or <IAX>/Mining/Host/python.
+  --fonts <dir>             Default IAM_FONTS_DIR / ACAD / <IAX>/Fonts.
+  --resource <dir>          Default IAX_RESOURCE or the native directory's resource/.
+  --title <text>            Window/app title in iam-app.json.
+  --tab <label>             Ribbon tab label. Default 能力.
+  --group <label>           One ribbon group with this label instead of domain prefixes.
+  --zip                     Also write <out>.zip.
+  --force                   Replace a non-empty output folder.
+
+The Python directory must be portable and must already contain the packages the
+workflows import (numpy, the IAM bindings' dependencies). Only the platform's own
+iam/ and iam_algorithms/ are copied by this command.
+
+The published app runs workflows through python/bridge.py directly; it needs no
+model endpoint, agent session or Harness installation. The Python runtime must
+match the ABI of the bundled iam_algorithms build. Ribbon items default to the
+drawn flow glyph; an "icon" key in iam-app.json draws one of the app's own icons
+instead.
 ```
 
 <a id="dsh-acp"></a>

@@ -128,6 +128,40 @@ test('publishes the selected workflows into a folder the native host reads', asy
   assert.match(text, /published: /)
 })
 
+test('without a selection publishes every active workflow, sorted, grouped by domain', async () => {
+  const { workspace, workflowsRoot, config } = fixture()
+  writeWorkflow(workflowsRoot, 'plain')
+  const tools = mount(config, { ensure: async () => workspace })
+  const { value } = await call(tools, APP_PUBLISH, { out: 'dist/all' })
+
+  assert.equal(value.ok, true)
+  assert.deepEqual(value.workflows, ['orebody-model', 'orebody-report', 'plain'])
+  const appConfig = JSON.parse(readFileSync(join(value.output, 'iam-app.json'), 'utf8'))
+  assert.deepEqual(appConfig.tabs[0].groups.map(group => group.label), ['orebody', '流程'])
+})
+
+test('puts the workflows in one group when the caller names it', async () => {
+  const { workspace, config } = fixture()
+  const tools = mount(config, { ensure: async () => workspace })
+  const { value } = await call(tools, APP_PUBLISH, { out: 'dist/grouped', group: '全部' })
+
+  assert.equal(value.ok, true)
+  const appConfig = JSON.parse(readFileSync(join(value.output, 'iam-app.json'), 'utf8'))
+  assert.deepEqual(appConfig.tabs[0].groups.map(group => group.label), ['全部'])
+})
+
+test('refuses a manifest the parameter dialog cannot draw', async () => {
+  const { workspace, workflowsRoot, config } = fixture()
+  writeWorkflow(workflowsRoot, 'broken-model', {
+    inputs: { required: [{ name: 'mode', kind: 'enum', means: 'Pick one.', refused_when: 'None given.' }] },
+  })
+  const tools = mount(config, { ensure: async () => workspace })
+  const { value } = await call(tools, APP_PUBLISH, { out: 'dist/broken' })
+
+  assert.equal(value.ok, false)
+  assert.match(value.refused, /choices/)
+})
+
 test('refuses a draft rather than publishing it, and writes nothing', async () => {
   const { workspace, workflowsRoot, root, config } = fixture()
   writeWorkflow(workflowsRoot, 'draft-model', { status: 'draft' })

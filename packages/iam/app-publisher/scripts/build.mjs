@@ -50,7 +50,7 @@ function loadTypeScript() {
  * entry rather than bundling, so a new host file that is not listed here is not
  * written to lib/ and its import fails at load -- visibly.
  */
-const HOST_MODULES = ['host/index.ts', 'host/tools.ts', 'host/publish.ts']
+const HOST_MODULES = ['host/index.ts', 'host/tools.ts', 'host/publish.ts', 'host/cli.ts']
 
 function buildHost() {
   const ts = loadTypeScript()

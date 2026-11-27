@@ -1,23 +1,17 @@
 /**
- * Publish a portable desktop app from a native base executable plus a set of
- * frozen workflows.
+ * Command-line entry for the app publisher.
  *
- * The publisher itself is a Harness capability: `iam_app_publish` in
- * `packages/iam/app-publisher`, sharing this command's `publish()` core. This
- * file only parses the command line and names the deployment inputs a shell
- * makes convenient; the harness supplies the same inputs from its environment.
+ * `dsh app publish` calls {@link runPublishCli}; the publishing itself is
+ * `publish()` in publish.ts, which the Harness tool `iam_app_publish` calls
+ * directly. The command line lives here so both carriers share one parser.
  */
-
 import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import {
   baseExecutableName,
   publish,
   resolvePublishSources,
   type PublishConfig,
-} from '../packages/iam/app-publisher/host/publish.ts'
-
-export * from '../packages/iam/app-publisher/host/publish.ts'
+} from './publish.js'
 
 interface ParsedArguments {
   readonly values: Map<string, string>
@@ -51,7 +45,7 @@ function parseArguments(argv: readonly string[]): ParsedArguments {
 
 const HELP = `Publish a standalone native app: the base view executable plus selected frozen workflows.
 
-  pnpm run package:app -- --base mining --workspace <dir> --out <dir> [options]
+  dsh app publish --base mining --workspace <dir> --out <dir> [options]
 
 The same publisher is the Harness capability \`iam_app_publish\`.
 
@@ -80,7 +74,7 @@ Optional
 
 The Python directory must be portable and must already contain the packages the
 workflows import (numpy, the IAM bindings' dependencies). Only the platform's own
-iam/ and iam_algorithms/ are copied by this script.
+iam/ and iam_algorithms/ are copied by this command.
 
 The published app runs workflows through python/bridge.py directly; it needs no
 model endpoint, agent session or Harness installation. The Python runtime must
@@ -88,7 +82,7 @@ match the ABI of the bundled iam_algorithms build. Ribbon items default to the
 drawn flow glyph; an "icon" key in iam-app.json draws one of the app's own icons
 instead.`
 
-function main(argv: readonly string[]): void {
+function main(argv: readonly string[], environment: NodeJS.ProcessEnv): void {
   const { values, flags } = parseArguments(argv)
   if (flags.has('help')) {
     console.log(HELP)
@@ -117,7 +111,7 @@ function main(argv: readonly string[]): void {
     ...(resource === undefined ? {} : { resource }),
     ...(python === undefined ? {} : { python: resolve(python) }),
   }
-  const sources = resolvePublishSources(process.env, configured)
+  const sources = resolvePublishSources(environment, configured)
   const workflows = values.get('workflows')
   const title = values.get('title')
   const tabLabel = values.get('tab')
@@ -134,20 +128,26 @@ function main(argv: readonly string[]): void {
     zip: flags.has('zip'),
     force: flags.has('force'),
   })
-  console.log(`publish-app: ${result.outputDirectory}`)
+  console.log(`dsh app publish: ${result.outputDirectory}`)
   console.log(`  executable: ${baseExecutableName(base)}`)
   console.log(`  workflows: ${result.workflows.map(workflow => workflow.name).join(', ')}`)
   console.log(`  config: ${result.configPath}`)
   if (result.zipPath !== undefined) console.log(`  zip: ${result.zipPath}`)
 }
 
-const invokedPath = process.argv[1]
-if (invokedPath !== undefined && resolve(invokedPath) === fileURLToPath(import.meta.url)) {
+/**
+ * Run the publisher command line.
+ * @param argv - arguments after the command name.
+ * @param environment - deployment variables (`IAM_*`) the sources resolve from.
+ * @returns 0 for a publish or `--help`; 1 for a refusal or a failed call.
+ */
+export function runPublishCli(argv: readonly string[], environment: NodeJS.ProcessEnv = process.env): number {
   try {
-    main(process.argv.slice(2))
+    main(argv, environment)
+    return 0
   }
   catch (error) {
-    console.error(`publish-app: ${error instanceof Error ? error.message : String(error)}`)
-    process.exit(1)
+    console.error(`dsh app publish: ${error instanceof Error ? error.message : String(error)}`)
+    return 1
   }
 }

@@ -79,6 +79,20 @@ describe('parseDshArgs', () => {
     expect(exitCode(['--', 'tui'])).toBe(1)
   })
 
+  it('reserves leading app for publishing and forwards the publisher flags', () => {
+    // The publisher owns its flags and its help; nothing is parsed in between.
+    expect(parse(['app', 'publish', '--out', 'dist/app', '--base', 'mining']))
+      .toEqual({ mode: 'app-publish', args: ['--out', 'dist/app', '--base', 'mining'] })
+    expect(parse(['app', 'publish', '--help', '--workspace', 'work']))
+      .toEqual({ mode: 'app-publish', args: ['--help', '--workspace', 'work'] })
+    // A profile still owns app arguments placed after its launcher flags.
+    expect(parse(['--profile', 'web', 'app', 'publish']))
+      .toEqual({ mode: 'profile', profile: 'web', patches: [], args: ['app', 'publish'] })
+    expect(exitCode(['app', 'bogus'])).toBe(1)
+    // No subcommand: commander prints the app help and exits 1, having done nothing.
+    expect(exitCode(['app'])).toBe(1)
+  })
+
   it.each([
     [''], ['desktop'], ['Desktop'], ['DESKTOP'],
     ['custom', '--patch='], ['custom', '--from-default-profile='],
