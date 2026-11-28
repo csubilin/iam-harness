@@ -14,6 +14,7 @@
     "lib/python.js",
     "lib/native.js",
     "python/repository.py",
+    "python/apply_edit.py",
     "python/vendor",
     "cordis.patch.yml"
   ],

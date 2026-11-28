@@ -44,3 +44,20 @@ test('every IAM package ships the modules its entry imports', () => {
     }
   }
 })
+
+// The Python half is not imported, so the check above cannot see it: a missing
+// apply_edit.py is a plugin that works in the checkout and refuses every
+// declarative edit in an installer, and the forge cannot scaffold without its
+// templates.
+test('the IAM packages ship every Python file and data tree their halves run', () => {
+  const expected = [
+    ['mining-repository', ['python/repository.py', 'python/apply_edit.py', 'python/vendor']],
+    ['capability-forge', ['python/capability.py', 'templates', 'schemas']],
+  ]
+  for (const [packageName, entries] of expected) {
+    const pkg = JSON.parse(readFileSync(join(iamRoot, packageName, 'package.json'), 'utf8'))
+    for (const entry of entries) {
+      assert.ok(pkg.files.includes(entry), `${packageName} does not ship ${entry}`)
+    }
+  }
+})

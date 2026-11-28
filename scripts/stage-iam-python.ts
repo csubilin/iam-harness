@@ -18,7 +18,17 @@ const ROOT = resolve(import.meta.dirname, '..')
 export const STAGED_RUNTIME = join(ROOT, 'apps', 'desktop', '.desktop-build', 'iam-python-runtime')
 
 /** The interpreter files copied beside the stdlib. */
-const BIN_FILES = ['python.exe', 'python3.14.exe', 'libpython3.14.dll', 'libgcc_s_seh-1.dll', 'libffi-8.dll']
+export const BIN_FILES = [
+  'python.exe', 'python3.14.exe', 'libpython3.14.dll', 'libgcc_s_seh-1.dll', 'libffi-8.dll',
+  'libwinpthread-1.dll',
+  // MSYS2 runtime libraries the stdlib extensions import: hashlib and binascii
+  // reach libcrypto/zlib, expat is imported by ElementTree, and bz2/lzma/zstd
+  // are zipfile's other compression paths. Without them `import binascii` fails
+  // on a machine with no MSYS2 installation on PATH.
+  'zlib1.dll', 'libbz2-1.dll', 'liblzma-5.dll', 'libexpat-1.dll',
+  'libssl-3-x64.dll', 'libcrypto-3-x64.dll', 'libmpdec-4.dll', 'libsqlite3-0.dll',
+  'libzstd.dll', 'libstdc++-6.dll',
+]
 
 /** Stdlib directories the bridge never imports. */
 const SKIP_DIRECTORIES = new Set([
@@ -75,7 +85,9 @@ function countFiles(directory: string): number {
 export function stageIfStale(source: string, out: string): boolean {
   const staged = join(out, 'bin', 'python3.14.exe')
   const origin = join(source, 'bin', 'python3.14.exe')
-  if (existsSync(staged) && existsSync(origin)) {
+  // Every runtime file counts: a staged copy from before a BIN_FILES addition
+  // has the right executable and lacks the libraries that make it run.
+  if (existsSync(staged) && existsSync(origin) && BIN_FILES.every(file => existsSync(join(out, 'bin', file)))) {
     const stagedAt = statTime(staged)
     if (stagedAt >= statTime(origin)) return false
   }

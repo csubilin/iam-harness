@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { after, describe, test } from 'node:test'
 
@@ -10,6 +11,7 @@ import { cleanup, fakeTools, loadToolHost, mkdtemp, pluginRoot } from './helpers
 after(cleanup)
 
 const forge = await loadToolHost('capability-forge')
+const pythonHalf = await loadToolHost('capability-forge', ['python'])
 const { name, inject, apply } = forge.index
 // The one execution entry, used by the draft-lifecycle test: the forge never
 // runs a capability, so the "before/after freeze" proof has to call the bridge.
@@ -127,6 +129,23 @@ describe('the plugin as a bundle', () => {
     assert.equal(name, 'iam-capability-forge')
     assert.deepEqual(inject, ['tools'])
     assert.equal(typeof apply, 'function')
+  })
+
+  test('IAM_CAPABILITY_SCRIPT names the copy outside app.asar', () => {
+    // A packaged Desktop cannot run the asar copy: Python opens a real file,
+    // and the forge finds schemas/templates beside that file.
+    const directory = mkdtempSync(join(tmpdir(), 'iam-forge-script-'))
+    const script = join(directory, 'capability.py')
+    writeFileSync(script, '')
+    const previous = process.env.IAM_CAPABILITY_SCRIPT
+    process.env.IAM_CAPABILITY_SCRIPT = script
+    try {
+      assert.equal(pythonHalf.python.capabilityScript(), script)
+    } finally {
+      if (previous === undefined) delete process.env.IAM_CAPABILITY_SCRIPT
+      else process.env.IAM_CAPABILITY_SCRIPT = previous
+      rmSync(directory, { recursive: true, force: true })
+    }
   })
 
   test('registers five tools, and no tool can execute a capability', () => {

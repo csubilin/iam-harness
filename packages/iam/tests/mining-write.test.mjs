@@ -125,14 +125,24 @@ describe('the write door: what is decided before anything runs', () => {
     // Running a verb means running code this session wrote, so it needs a
     // sandbox.  The refusal is the deployment fact, stated as one -- and the
     // message also says which tool needs no sandbox, because the model's next
-    // move should not be to guess.
-    const { workspace, project } = scratch()
-    const tools = mount({}, workspace)
-    const { value } = await call(tools, 'iam_mine_verb', {
-      project, code: 'def run(port):\n    pass\n',
-    })
-    assert.equal(value.ok, false)
-    assert.match(String(value.refused), /programRunner/)
+    // move should not be to guess.  The packaged Desktop's own trusted-local
+    // opt-in is removed here so the case is about the default.
+    const previous = process.env.IAX_ALLOW_UNSAFE_PROGRAMS
+    const previousRunner = process.env.IAX_PROGRAM_RUNNER_JSON
+    delete process.env.IAX_ALLOW_UNSAFE_PROGRAMS
+    delete process.env.IAX_PROGRAM_RUNNER_JSON
+    try {
+      const { workspace, project } = scratch()
+      const tools = mount({}, workspace)
+      const { value } = await call(tools, 'iam_mine_verb', {
+        project, code: 'def run(port):\n    pass\n',
+      })
+      assert.equal(value.ok, false)
+      assert.match(String(value.refused), /programRunner/)
+    } finally {
+      if (previous !== undefined) process.env.IAX_ALLOW_UNSAFE_PROGRAMS = previous
+      if (previousRunner !== undefined) process.env.IAX_PROGRAM_RUNNER_JSON = previousRunner
+    }
   })
 })
 

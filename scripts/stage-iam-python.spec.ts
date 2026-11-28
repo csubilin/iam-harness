@@ -1,14 +1,14 @@
-import { existsSync, mkdirSync, mkdtempSync, rmSync, utimesSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, rmSync, unlinkSync, utimesSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { expect, it } from 'vitest'
-import { stageIamPython, stageIfStale } from './stage-iam-python.ts'
+import { BIN_FILES, stageIamPython, stageIfStale } from './stage-iam-python.ts'
 
 function fixture(): string {
   const source = mkdtempSync(join(tmpdir(), 'iam-python-source-'))
   const bin = join(source, 'bin')
   mkdirSync(bin, { recursive: true })
-  for (const file of ['python.exe', 'python3.14.exe', 'libpython3.14.dll', 'libgcc_s_seh-1.dll', 'libffi-8.dll']) {
+  for (const file of BIN_FILES) {
     writeFileSync(join(bin, file), file)
   }
   const library = join(source, 'lib', 'python3.14')
@@ -48,6 +48,10 @@ it('re-stages only when the source is newer than the staged copy', () => {
   try {
     expect(stageIfStale(source, out)).toBe(true)
     expect(stageIfStale(source, out)).toBe(false)
+    // A runtime staged before a BIN_FILES addition is incomplete even when its
+    // interpreter is up to date.
+    unlinkSync(join(out, 'bin', 'zlib1.dll'))
+    expect(stageIfStale(source, out)).toBe(true)
     const later = new Date(Date.now() + 60_000)
     utimesSync(join(source, 'bin', 'python3.14.exe'), later, later)
     expect(stageIfStale(source, out)).toBe(true)

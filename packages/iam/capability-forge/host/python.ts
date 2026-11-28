@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { delimiter, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -33,12 +33,18 @@ export interface CapabilityOutcome {
 }
 
 export function pythonExecutable(options: CapabilityOptions = {}): string {
-  return options.python || process.env.IAX_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
+  return options.python || process.env.IAM_CAPABILITY_PYTHON || process.env.IAX_PYTHON
+    || (process.platform === 'win32' ? 'python' : 'python3')
 }
 
-/** The forge's Python half, which must exist or nothing here can answer. */
+/**
+ * The forge's Python half, which must exist or nothing here can answer.
+ *
+ * `IAM_CAPABILITY_SCRIPT` names the copy a packaged Desktop carries outside
+ * `app.asar`, where Python can open it.
+ */
 export function capabilityScript(): string {
-  const script = join(packageRoot, 'python', 'capability.py')
+  const script = process.env.IAM_CAPABILITY_SCRIPT ?? join(packageRoot, 'python', 'capability.py')
   if (!existsSync(script)) {
     throw new CapabilityUnavailableError(
       `the CapabilityForge Python half is missing at ${script}; the package is incomplete`,
@@ -62,6 +68,14 @@ export function callCapability(
 ): Promise<CapabilityOutcome> {
   const script = capabilityScript()
   const environment = { ...process.env, PYTHONIOENCODING: 'utf-8' }
+  // `freeze` reads the algorithm versions from the packaged bindings; the
+  // nanobind extension imports the IAX DLLs beside the native viewers, and the
+  // packaged Desktop names that directory instead of putting it on PATH.
+  const nativeBin = process.env.IAM_NATIVE_DIR
+  if (nativeBin !== undefined && nativeBin !== '') {
+    const key = Object.keys(environment).find(name => name.toLowerCase() === 'path') ?? 'PATH'
+    environment[key] = [nativeBin, environment[key]].filter(Boolean).join(delimiter)
+  }
 
   return new Promise((resolveCall, reject) => {
     const child = spawn(pythonExecutable(options), ['-X', 'utf8', script, verb, ...arguments_], {

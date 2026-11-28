@@ -780,7 +780,10 @@ def child_environment(workspace=None):
                "DYLD_LIBRARY_PATH", "IAM_ALGORITHMS_LIBRARY",
                "IAM_C_LIBRARY", "IAM_PLOT_C_LIBRARY", "IAM_ALGORITHMS_PYTHON_MODULE", "IAM_PYTHON_PACKAGE_DIR",
                 "IAM_ALGORITHM_PROVIDERS", "IAM_ALGORITHM_USER_IMPLEMENTATIONS",
-               "IAX_PLATFORM_ROOT")
+               "IAX_PLATFORM_ROOT",
+               # The packaged Desktop's programRunner adapter needs these to
+               # start the harness ACL runner as an Electron-Node child.
+               "IAM_SANDBOX_RUNNER", "ELECTRON_RUN_AS_NODE")
     environment = {key: os.environ[key] for key in allowed if key in os.environ}
     existing = os.environ.get("PYTHONPATH", "").split(os.pathsep)
     paths = [str(directory) for directory in PYTHON_PACKAGE_PATHS]

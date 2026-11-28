@@ -258,22 +258,42 @@ function runtimeResources(): RuntimeResources {
  * The IAM native viewers shipped beside the packaged application, for the views
  * plugin's "browse natively" / "edit natively" actions. An explicit
  * IAM_NATIVE_DIR / IAM_FONTS_DIR (or AutoCAD's ACAD) still wins.
+ *
+ * The two data libraries are named for the same reason: the Python bindings
+ * search a build tree that an installed application does not have, and the
+ * copies beside the viewers are the ones it can load.
  */
 function nativeEditorEnvironment(): NodeJS.ProcessEnv {
   if (!app.isPackaged || process.platform !== 'win32') return {}
   const root = join(process.resourcesPath, 'iam-native')
+  const bin = join(root, 'win-x64')
   return {
-    ...(process.env.IAM_NATIVE_DIR === undefined ? { IAM_NATIVE_DIR: join(root, 'win-x64') } : {}),
+    ...(process.env.IAM_NATIVE_DIR === undefined ? { IAM_NATIVE_DIR: bin } : {}),
     ...(process.env.IAM_FONTS_DIR === undefined && process.env.ACAD === undefined
       ? { IAM_FONTS_DIR: join(root, 'fonts') } : {}),
+    ...(process.env.IAM_C_LIBRARY === undefined ? { IAM_C_LIBRARY: join(bin, 'IamC.dll') } : {}),
+    ...(process.env.IAM_PLOT_C_LIBRARY === undefined
+      ? { IAM_PLOT_C_LIBRARY: join(bin, 'IamPlotC.dll') } : {}),
+    // The renderer is shipped in the same directory; naming it here is the
+    // render plugin's documented override and needs no profile configuration.
+    ...(process.env.IAM_NATIVE_HEADLESS_TOOL === undefined
+      ? { IAM_NATIVE_HEADLESS_TOOL: join(bin, 'IamNativeHeadlessMining.exe') } : {}),
+    // The importer and drawing-query programs are resolved the same way.
+    ...(process.env.IAM_IMPORT_TOOL === undefined
+      ? { IAM_IMPORT_TOOL: join(bin, 'IamImportTool.exe') } : {}),
+    ...(process.env.IAX_DRAWING_IMPORT_TOOL === undefined
+      ? { IAX_DRAWING_IMPORT_TOOL: join(bin, 'IaxDrawingImportTool.exe') } : {}),
+    ...(process.env.IAX_DRAWING_QUERY_TOOL === undefined
+      ? { IAX_DRAWING_QUERY_TOOL: join(bin, 'IaxDrawingQuery.exe') } : {}),
   }
 }
 
 /**
- * The algorithm bridge Python half a packaged Desktop carries outside app.asar:
- * Python cannot read an asar archive, so the script, its vendored bindings and
- * the interpreter matched to them are real files under resources. An explicit
- * IAM_BRIDGE_SCRIPT / IAM_BRIDGE_PYTHON still wins.
+ * The IAM Python halves a packaged Desktop carries outside app.asar: Python
+ * cannot read an asar archive, so the scripts, their vendored bindings and the
+ * interpreter matched to them are real files under resources. An explicit
+ * IAM_BRIDGE_SCRIPT / IAM_REPOSITORY_SCRIPT / IAM_BRIDGE_PYTHON /
+ * IAM_REPOSITORY_PYTHON still wins.
  */
 function iamAlgorithmsEnvironment(): NodeJS.ProcessEnv {
   if (!app.isPackaged || process.platform !== 'win32') return {}
@@ -282,10 +302,42 @@ function iamAlgorithmsEnvironment(): NodeJS.ProcessEnv {
   const python = [join(root, 'python-runtime', 'python.exe'),
     join(root, 'python-runtime', 'bin', 'python.exe'),
     join(root, 'python-runtime', 'bin', 'python3')].find(candidate => existsSync(candidate))
+  const repository = join(root, 'python', 'repository.py')
+  const capability = join(root, 'capability', 'python', 'capability.py')
+  const vendor = join(root, 'python', 'vendor')
+  // The harness's Windows ACL runner confines writes to the session workspace
+  // and a private temp directory; the adapter names the workspace it is given
+  // and spawns this runner as an Electron-Node child.
+  const sandboxRunner = join(app.getAppPath(), 'dsh', 'node_modules', '@deepseek-ai',
+    'dsh-sandbox-windows-acl', 'lib', 'runner.js')
+  const sandboxWrapper = join(process.resourcesPath, 'iam-sandbox', 'runner-wrapper.cjs')
+  const sandbox = existsSync(sandboxRunner) && existsSync(sandboxWrapper)
   return {
     ...(process.env.IAM_BRIDGE_SCRIPT === undefined
       ? { IAM_BRIDGE_SCRIPT: join(root, 'python', 'bridge.py') } : {}),
     ...(python === undefined || process.env.IAM_BRIDGE_PYTHON !== undefined ? {} : { IAM_BRIDGE_PYTHON: python }),
+    ...(existsSync(repository) && process.env.IAM_REPOSITORY_SCRIPT === undefined
+      ? { IAM_REPOSITORY_SCRIPT: repository } : {}),
+    ...(python === undefined || process.env.IAM_REPOSITORY_PYTHON !== undefined
+      ? {} : { IAM_REPOSITORY_PYTHON: python }),
+    ...(existsSync(capability) && process.env.IAM_CAPABILITY_SCRIPT === undefined
+      ? { IAM_CAPABILITY_SCRIPT: capability } : {}),
+    ...(python === undefined || process.env.IAM_CAPABILITY_PYTHON !== undefined
+      ? {} : { IAM_CAPABILITY_PYTHON: python }),
+    // The forge freezes through the bridge CLI, and reads the catalog versions
+    // from the vendored bindings; both are named here rather than guessed from
+    // a checkout that an installed application does not have.
+    ...(existsSync(capability) && process.env.IAM_CAPABILITY_BRIDGE === undefined
+      ? { IAM_CAPABILITY_BRIDGE: join(root, 'python', 'bridge.py') } : {}),
+    ...(existsSync(join(vendor, 'iam_algorithms')) && process.env.IAM_PYTHON_PACKAGE_DIR === undefined
+      ? { IAM_PYTHON_PACKAGE_DIR: vendor } : {}),
+    // The ACL runner is the default programRunner: session code may write only
+    // in the workspace and a private temp directory. An explicit
+    // IAX_PROGRAM_RUNNER_JSON still wins; no sandbox means the tools refuse.
+    ...(sandbox && process.env.IAM_SANDBOX_RUNNER === undefined
+      ? { IAM_SANDBOX_RUNNER: sandboxRunner } : {}),
+    ...(sandbox && process.env.IAX_PROGRAM_RUNNER_JSON === undefined
+      ? { IAX_PROGRAM_RUNNER_JSON: JSON.stringify([process.execPath, sandboxWrapper]) } : {}),
   }
 }
 

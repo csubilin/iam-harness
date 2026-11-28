@@ -1,7 +1,7 @@
 /** Build a complete IAM Harness installer with the built-in mining plugins. */
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
-import { join, relative, resolve } from 'node:path'
+import { dirname, join, relative, resolve } from 'node:path'
 import { pythonSource, stageIfStale, STAGED_RUNTIME } from './stage-iam-python.ts'
 
 const ROOT = resolve(import.meta.dirname, '..')
@@ -49,12 +49,18 @@ function requireNativeViewers(): void {
   const required = [
     join(native, 'IamDrawing.exe'),
     join(native, 'IamMining.exe'),
+    // iam_render_document resolves this one from the same directory.
+    join(native, 'IamNativeHeadlessMining.exe'),
+    // import_mine and describe_drawing resolve these three from it too.
+    join(native, 'IamImportTool.exe'),
+    join(native, 'IaxDrawingImportTool.exe'),
+    join(native, 'IaxDrawingQuery.exe'),
     process.env.IAX_FONTS ?? join(iax, 'Fonts'),
     process.env.IAX_RESOURCE ?? join(iax, 'resource'),
   ]
   const missing = required.filter(path => !existsSync(path))
   if (missing.length > 0) {
-    throw new Error(`package:iam: the Windows installer ships the IAX native viewers, but ${missing.join(', ')} is missing; `
+    throw new Error(`package:iam: the Windows installer ships the IAX native viewers, renderer and importers, but ${missing.join(', ')} is missing; `
       + 'build the IAX native target or set IAX_NATIVE_DIR / IAX_FONTS / IAX_RESOURCE')
   }
 }
@@ -83,6 +89,58 @@ function requireIamAlgorithms(environment: NodeJS.ProcessEnv): void {
   if (problems.length > 0) {
     throw new Error(`package:iam: the Windows installer ships the IAM algorithm bridge, but ${problems.join('; ')}; `
       + 'build the IAX native target or set IAM_PYTHON_RUNTIME_DIR / IAM_PYTHON_PACKAGE_DIR / IAM_MINING_PYTHON_DIR')
+  }
+  // The staged interpreter must carry its MSYS2 runtime DLLs, not borrow them
+  // from the build machine's PATH: the installed application has no MSYS2.
+  const interpreter = python[0]
+  if (interpreter === undefined) {
+    throw new Error('package:iam: the staged Python runtime has no interpreter')
+  }
+  // PowerShell stores the variable as `Path`; a copied env object reads keys
+  // case-sensitively, and this file already normalizes it for the pack step.
+  const pathKey = Object.keys(environment).find(name => name.toLowerCase() === 'path') ?? 'PATH'
+  const probe = spawnSync(interpreter, ['-I', '-c', 'import binascii, hashlib, zipfile, xml.etree.ElementTree'], {
+    env: {
+      ...environment,
+      [pathKey]: [dirname(interpreter), join(environment.SystemRoot ?? 'C:\\Windows', 'System32')].join(';'),
+    },
+    encoding: 'utf8',
+  })
+  if (probe.status !== 0) {
+    throw new Error(`package:iam: ${interpreter} cannot run its own standard library `
+      + `(${probe.error?.message ?? probe.stderr.trim()}); re-stage the runtime with pnpm run stage:iam-python`)
+  }
+}
+
+/**
+ * The CapabilityForge Python half reads its schemas and templates from the
+ * package root, so the three travel together outside `app.asar`.
+ */
+function requireCapabilityForge(): void {
+  const forge = join(ROOT, 'packages', 'iam', 'capability-forge')
+  const required = [
+    join(forge, 'python', 'capability.py'),
+    join(forge, 'templates'),
+    join(forge, 'schemas'),
+  ]
+  const missing = required.filter(path => !existsSync(path))
+  if (missing.length > 0) {
+    throw new Error(`package:iam: the Windows installer ships the CapabilityForge Python half, but ${missing.join(', ')} is missing`)
+  }
+}
+
+/**
+ * The packaged Desktop's default programRunner is the harness Windows ACL
+ * runner, reached through the IAM adapter; both must be present to ship it.
+ */
+function requireIamSandbox(): void {
+  const required = [
+    join(ROOT, 'apps', 'desktop', 'resources', 'iam-sandbox', 'runner-wrapper.cjs'),
+    join(ROOT, 'packages', 'sandbox', 'sandbox-windows-acl', 'src', 'runner.ts'),
+  ]
+  const missing = required.filter(path => !existsSync(path))
+  if (missing.length > 0) {
+    throw new Error(`package:iam: the Windows installer ships the IAM programRunner, but ${missing.join(', ')} is missing`)
   }
 }
 
@@ -118,6 +176,8 @@ if (target === 'win-x64') {
   }
   requireNativeViewers()
   requireIamAlgorithms(env)
+  requireCapabilityForge()
+  requireIamSandbox()
 }
 pnpm(['run', 'package:desktop', '--', ...argumentsToPackage], env)
 

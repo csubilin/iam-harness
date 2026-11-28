@@ -179,7 +179,7 @@ DEADLINE_MARGIN_SECONDS = 30
 # what the size was and where the file is.
 DOCUMENT_JSON_LIMIT_BYTES = 256 * 1024
 
-def run_host(arguments, sandbox=False, timeout_seconds=None):
+def run_host(arguments, sandbox=False, timeout_seconds=None, workspace=None):
     """Runs `python -m iam.host ...` and returns (exit code, stdout, stderr).
 
     A grandchild rather than an import, because the host is a CLI: it owns its
@@ -189,11 +189,16 @@ def run_host(arguments, sandbox=False, timeout_seconds=None):
     ALWAYS BOUNDED.  `timeout_seconds=None` means the default, not "no limit":
     see the note on HOST_DEADLINE_SECONDS for why an unbounded host is not a
     thing this half is allowed to start.
+
+    `workspace` is the boundary the sandboxed host may write in; the packaged
+    Desktop's programRunner adapter reads it as IAX_EXECUTION_WORKSPACE.
     """
     command = [sys.executable, "-X", "utf8", "-m", "iam.host"] + list(arguments)
     if sandbox:
         command = program_command(command)
     environment = {**os.environ, "PYTHONIOENCODING": "utf-8"}
+    if sandbox and workspace:
+        environment["IAX_EXECUTION_WORKSPACE"] = str(Path(workspace).resolve())
     bound = timeout_seconds or HOST_DEADLINE_SECONDS
     margin = DEADLINE_MARGIN_SECONDS
     try:
@@ -482,7 +487,8 @@ def verb_verb(options):
         # No outer deadline by default: the host's own `--timeout` is the one that
         # wraps the verb, and a second bound here would be a second answer to the
         # same question, firing at a moment nobody chose.
-        outcome = run_host(arguments, sandbox=True, timeout_seconds=options.timeout_seconds)
+        outcome = run_host(arguments, sandbox=True, timeout_seconds=options.timeout_seconds,
+                           workspace=options.workspace)
         return written_document(document, options.project, options.workspace,
                                 outcome, {"verb": str(verb.name)})
     finally:

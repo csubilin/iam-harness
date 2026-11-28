@@ -150,14 +150,27 @@ def main(argv=None):
     # a plugin that blocks in its own import never reaches the verb, and waiting
     # for the entry marker without a deadline hung exactly there.
     if os.name == "nt" and args.plugin and args.timeout > 0 and not os.environ.get("IAM_HOST_DEADLINE_CHILD"):
-        with tempfile.TemporaryDirectory(prefix="iam-host-deadline-") as folder:
-            started = Path(folder) / "started"
-            finished = Path(folder) / "finished"
+        # FILES IN THE TEMP ROOT, NOT A DIRECTORY: a sandboxed child may create
+        # files directly in its private temp directory, but a directory it
+        # creates there does not inherit the capability write ACE, so a file
+        # inside that directory is refused.  The markers are paths that do not
+        # exist yet; the child's touch() creates them.
+        def temp_path(prefix):
+            descriptor, name = tempfile.mkstemp(prefix=prefix)
+            os.close(descriptor)
+            os.unlink(name)
+            return Path(name)
+
+        started = temp_path("iam-host-started-")
+        finished = temp_path("iam-host-finished-")
+        out_descriptor, out_name = tempfile.mkstemp(prefix="iam-host-stdout-")
+        err_descriptor, err_name = tempfile.mkstemp(prefix="iam-host-stderr-")
+        try:
             child_env = os.environ.copy()
             child_env["IAM_HOST_DEADLINE_CHILD"] = "1"
             child_env["IAM_HOST_DEADLINE_STARTED"] = str(started)
             child_env["IAM_HOST_DEADLINE_FINISHED"] = str(finished)
-            with open(Path(folder) / "stdout", "w+b") as out, open(Path(folder) / "stderr", "w+b") as err:
+            with os.fdopen(out_descriptor, "w+b") as out, os.fdopen(err_descriptor, "w+b") as err:
                 child = subprocess.Popen([sys.executable, "-m", "iam.host"] +
                                          (list(argv) if argv is not None else sys.argv[1:]),
                                          env=child_env, stdout=out, stderr=err)
@@ -185,6 +198,14 @@ def main(argv=None):
                       args.timeout, file=sys.stderr)
                 return 1
             return child.returncode
+        finally:
+            # Best effort: a confined child may not be allowed to remove what
+            # it wrote, and cleanup must not turn a finished run into a failure.
+            for path in (started, finished, Path(out_name), Path(err_name)):
+                try:
+                    path.unlink()
+                except OSError:
+                    pass
 
     library = iam.load(args.library)
     module = load_plugin(args.plugin) if args.plugin else None

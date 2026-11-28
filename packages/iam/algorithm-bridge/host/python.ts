@@ -156,8 +156,11 @@ export function callBridge(
   const repository = platformRoot(options.platformRoot || process.env.IAX_PLATFORM_ROOT)
   environment.IAX_PLATFORM_ROOT = repository
   if (options.programRunner !== undefined) environment.IAX_PROGRAM_RUNNER_JSON = JSON.stringify(options.programRunner)
+  // An inherited `IAX_ALLOW_UNSAFE_PROGRAMS` is the packaged Desktop's explicit
+  // opt-in (main.ts sets it); a row that says `false` still wins, and the same
+  // variable is already what the MiningRepository Python half reads directly.
   if (options.allowUnsafeExecution === true) environment.IAX_ALLOW_UNSAFE_PROGRAMS = '1'
-  else delete environment.IAX_ALLOW_UNSAFE_PROGRAMS
+  else if (options.allowUnsafeExecution === false) delete environment.IAX_ALLOW_UNSAFE_PROGRAMS
   // Set rather than appended: the library reads it once per process, and the
   // deployment's list is the whole list.  `;` on Windows, `:` elsewhere, which
   // is the same rule the library splits on.

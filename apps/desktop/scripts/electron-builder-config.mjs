@@ -75,7 +75,6 @@ export function createElectronBuilderConfig(
   const iaxNative = env.IAX_NATIVE_DIR ?? join(iaxRoot, 'build', 'exe', 'win-native')
   const iaxAlgorithms = env.IAM_PYTHON_PACKAGE_DIR
     ?? join(iaxRoot, 'build', 'CMakePlatforms', 'win-native', 'IAM', 'Host', 'Python')
-  const iaxMining = env.IAM_MINING_PYTHON_DIR ?? join(iaxRoot, 'Mining', 'Host', 'python')
   const policy = packagesMacOS && unsigned ? undefined : resolveDesktopPolicyEnvironment(env)
   if (resolvedPlatform === 'win32') installWindowsDirectoryInstaller()
   const macOSSigning = packagesMacOS && !unsigned ? resolveMacOSSigningEnvironment(env) : undefined
@@ -192,24 +191,40 @@ export function createElectronBuilderConfig(
       ...(packagesWindows ? [{ from: fileURLToPath(new URL('../resources/tray-windows.ico', import.meta.url)), to: 'tray.ico' }] : []),
       // IAM native viewers, their engine DLLs, icon resources and SHX fonts from
       // the IAX build; main.ts points the Host at them with IAM_NATIVE_DIR and
-      // IAM_FONTS_DIR. The filter keeps the test programs in that directory out.
+      // IAM_FONTS_DIR. The filter keeps the test programs in that directory out;
+      // the headless renderer and the three importer/query programs are the
+      // production tools that live there too.
       ...(packagesWindows ? [
         { from: iaxNative, to: 'iam-native/win-x64',
-          filter: ['*.dll', 'IamDrawing.exe', 'IamMining.exe'] },
+          filter: ['*.dll', 'IamDrawing.exe', 'IamMining.exe', 'IamNativeHeadlessMining.exe',
+            'IamImportTool.exe', 'IaxDrawingImportTool.exe', 'IaxDrawingQuery.exe'] },
         { from: env.IAX_RESOURCE ?? join(iaxRoot, 'resource'), to: 'iam-native/win-x64/resource',
           filter: ['**/*', '!fonts', '!fonts/**'] },
         { from: env.IAX_FONTS ?? join(iaxRoot, 'Fonts'), to: 'iam-native/fonts' },
-        // The algorithm bridge's Python half: Python cannot open app.asar, so the
-        // script, its vendored bindings and the matching interpreter are real
-        // files here. main.ts points the Host at them.
+        // The Python halves: Python cannot open app.asar, so the scripts, their
+        // vendored bindings and the matching interpreter are real files here.
+        // main.ts points the Host at them. `iam` is the repository's committed
+        // copy (which also carries the sandbox-safe host temp handling).
         ...(env.IAM_PYTHON_RUNTIME_DIR === undefined
           ? [] : [{ from: env.IAM_PYTHON_RUNTIME_DIR, to: 'iam-algorithms/python-runtime' }]),
         { from: join(iaxAlgorithms, 'iam_algorithms'), to: 'iam-algorithms/python/vendor/iam_algorithms' },
-        { from: join(iaxMining, 'iam'), to: 'iam-algorithms/python/vendor/iam' },
+        { from: join(repositoryRoot, 'packages', 'iam', 'mining-repository', 'python', 'vendor', 'iam'),
+          to: 'iam-algorithms/python/vendor/iam' },
         { from: join(repositoryRoot, 'packages', 'iam', 'algorithm-bridge', 'python', 'bridge.py'),
           to: 'iam-algorithms/python/bridge.py' },
+        { from: join(repositoryRoot, 'packages', 'iam', 'mining-repository', 'python'),
+          to: 'iam-algorithms/python', filter: ['repository.py', 'apply_edit.py'] },
+        // The forge reads its schemas and templates from its package root, so
+        // they travel together rather than as three loose files.
+        { from: join(repositoryRoot, 'packages', 'iam', 'capability-forge'),
+          to: 'iam-algorithms/capability',
+          filter: ['python/capability.py', 'templates/**', 'schemas/**'] },
         { from: join(repositoryRoot, 'packages', 'iam', 'algorithm-bridge', 'workflows'),
           to: 'iam-algorithms/workflows' },
+        // The IAM programRunner adapter: Python spawns it with the target
+        // command appended; it invokes the harness ACL runner from app.asar.
+        { from: fileURLToPath(new URL('../resources/iam-sandbox', import.meta.url)),
+          to: 'iam-sandbox', filter: ['runner-wrapper.cjs'] },
       ] : []),
     ],
     mac: {

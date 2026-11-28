@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict'
-import { existsSync, statSync } from 'node:fs'
+import { existsSync, mkdtempSync, rmSync, statSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { dirname, join } from 'node:path'
 import { after, describe, test } from 'node:test'
 
 import { cleanup, fakeTools, loadToolHost } from './helpers.mjs'
@@ -7,6 +9,7 @@ import { cleanup, fakeTools, loadToolHost } from './helpers.mjs'
 after(cleanup)
 
 const repository = await loadToolHost('mining-repository')
+const pythonHalf = await loadToolHost('mining-repository', ['python'])
 const { name, inject, apply } = repository.index
 
 const PROJECT = 'D:/dev/MiningFlatform/workspace/test1.iam'
@@ -59,6 +62,24 @@ describe('MiningRepository host half', () => {
     assert.equal(name, 'iam-mining-repository')
     assert.deepEqual(inject, ['tools'])
     assert.equal(typeof apply, 'function')
+  })
+
+  test('IAM_REPOSITORY_SCRIPT names the copy outside app.asar', () => {
+    // A packaged Desktop cannot run the asar copy: Python opens a real file.
+    // The vendored bindings are then taken beside it rather than from the
+    // package root, which is inside the archive.
+    const directory = mkdtempSync(join(tmpdir(), 'iam-repository-script-'))
+    const script = join(directory, 'repository.py')
+    writeFileSync(script, '')
+    const previous = process.env.IAM_REPOSITORY_SCRIPT
+    process.env.IAM_REPOSITORY_SCRIPT = script
+    try {
+      assert.equal(pythonHalf.python.repositoryScript(), script)
+    } finally {
+      if (previous === undefined) delete process.env.IAM_REPOSITORY_SCRIPT
+      else process.env.IAM_REPOSITORY_SCRIPT = previous
+      rmSync(dirname(script), { recursive: true, force: true })
+    }
   })
 
   test('registers exactly the tools the manifest lists, and no others', () => {

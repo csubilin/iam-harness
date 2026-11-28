@@ -719,10 +719,41 @@ print(json.dumps(dict(fractions=[s["fraction"] for s in dense["intervals"][0]["i
   })
 
   test('generated code is refused without an execution sandbox', async () => {
-    await assert.rejects(
-      () => call(mount({ allowUnsafeExecution: false }), 'iam_program_run', { code: 'print(1)' }),
-      /programRunner sandbox/,
-    )
+    const previousRunner = process.env.IAX_PROGRAM_RUNNER_JSON
+    delete process.env.IAX_PROGRAM_RUNNER_JSON
+    try {
+      await assert.rejects(
+        () => call(mount({ allowUnsafeExecution: false }), 'iam_program_run', { code: 'print(1)' }),
+        /programRunner sandbox/,
+      )
+    } finally {
+      if (previousRunner !== undefined) process.env.IAX_PROGRAM_RUNNER_JSON = previousRunner
+    }
+  })
+
+  test('an inherited trusted-local opt-in runs code; an explicit false still refuses', {
+    skip: PLATFORM ? false : SKIP,
+  }, async () => {
+    // The packaged Desktop sets this once for the Host instead of editing the
+    // profile's row; the Python halves already read it directly.
+    const previous = process.env.IAX_ALLOW_UNSAFE_PROGRAMS
+    const previousRunner = process.env.IAX_PROGRAM_RUNNER_JSON
+    process.env.IAX_ALLOW_UNSAFE_PROGRAMS = '1'
+    delete process.env.IAX_PROGRAM_RUNNER_JSON
+    try {
+      const { json } = await call(mount({ allowUnsafeExecution: undefined }), 'iam_program_run', { code: 'print(7)' })
+      assert.equal(json.exit_code, 0)
+      assert.match(json.stdout, /7/)
+      await assert.rejects(
+        () => call(mount({ allowUnsafeExecution: false }), 'iam_program_run', { code: 'print(1)' }),
+        /programRunner sandbox/,
+      )
+    } finally {
+      if (previous === undefined) delete process.env.IAX_ALLOW_UNSAFE_PROGRAMS
+      else process.env.IAX_ALLOW_UNSAFE_PROGRAMS = previous
+      if (previousRunner === undefined) delete process.env.IAX_PROGRAM_RUNNER_JSON
+      else process.env.IAX_PROGRAM_RUNNER_JSON = previousRunner
+    }
   })
 
   test('a declared result schema is enforced, in the part that can be', async () => {

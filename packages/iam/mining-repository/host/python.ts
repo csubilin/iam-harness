@@ -56,15 +56,23 @@ export interface RepositoryOutcome {
  *
  * `IAX_PYTHON` and the bundle row win over the name, for the reason Import's and
  * AlgorithmBridge's paths do: a deployment with a specific interpreter should be
- * able to name it once rather than edit this file.
+ * able to name it once rather than edit this file.  `IAM_REPOSITORY_PYTHON` is
+ * the packaged Desktop's copy, set beside `IAM_BRIDGE_PYTHON` for its own script.
  */
 export function pythonExecutable(options: RepositoryOptions): string {
-  return options.python || process.env.IAX_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
+  return options.python || process.env.IAM_REPOSITORY_PYTHON || process.env.IAX_PYTHON
+    || (process.platform === 'win32' ? 'python' : 'python3')
 }
 
-/** The program, which must exist or nothing in this plugin can work. */
+/**
+ * The program, which must exist or nothing in this plugin can work.
+ *
+ * `IAM_REPOSITORY_SCRIPT` names the copy a packaged Desktop carries outside
+ * `app.asar`: Python cannot read an asar archive, so a script inside it is not
+ * one Python can open.
+ */
 export function repositoryScript(): string {
-  const script = join(packageRoot, 'python', 'repository.py')
+  const script = process.env.IAM_REPOSITORY_SCRIPT ?? join(packageRoot, 'python', 'repository.py')
   if (!existsSync(script)) {
     throw new RepositoryUnavailableError(
       `the MiningRepository Python half is missing at ${script}; the package is incomplete`,
@@ -73,13 +81,18 @@ export function repositoryScript(): string {
   return script
 }
 
-/** The library directory a caller does not have to know about. */
-function defaultPythonPath(repository: string): string[] {
+/**
+ * The library directory a caller does not have to know about.
+ *
+ * VENDOR BESIDE THE SCRIPT, so the packaged copy under `iam-algorithms/python`
+ * and the checkout's own `python/vendor` are the same rule rather than two.
+ */
+function defaultPythonPath(repository: string, script: string): string[] {
   // SOURCE FIRST, VENDORED COPY LAST -- the same order AlgorithmBridge gives its
   // own `sys.path`, and load-bearing for the same reason: with the vendored copy
   // first, an edit to `iam` would reach an installed copy of this plugin and
   // not the checkout it is being developed in.
-  return [join(repository, 'Mining', 'Host', 'python'), join(packageRoot, 'python', 'vendor')]
+  return [join(repository, 'Mining', 'Host', 'python'), join(dirname(script), 'vendor')]
 }
 
 function platformRoot(configured?: string): string {
@@ -107,7 +120,7 @@ export function callRepository(
   const environment = { ...process.env }
   const repository = platformRoot(options.platformRoot || process.env.IAX_PLATFORM_ROOT)
   environment.IAX_PLATFORM_ROOT = repository
-  const joined = [...(options.pythonPath ?? []), ...defaultPythonPath(repository), environment.PYTHONPATH ?? '']
+  const joined = [...(options.pythonPath ?? []), ...defaultPythonPath(repository, script), environment.PYTHONPATH ?? '']
     .filter(Boolean)
   environment.PYTHONPATH = joined.join(process.platform === 'win32' ? ';' : ':')
   // The program decodes its own output as UTF-8 and so must its reader; a
